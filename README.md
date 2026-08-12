@@ -297,16 +297,16 @@ assets, save, settings, certificate, or provisioning profile. See
 
 ### Does the IPA work in LiveContainer?
 
-LiveContainer is not currently a supported or verified install path. A user
-has reported that the preview does not work there, but SunPad does not yet have
-the LiveContainer version, device details, signatures, and logs needed to
-identify why. A current upstream source review found no obvious package-layout
-conflict: LiveContainer's signer recursively includes 64-bit Mach-O files, and
-the audited SunPad IPA includes the module plus its device-relative filename.
-That is compatibility evidence, not a runtime pass. The supported preview path
-remains re-signing both the app and its nested module, then installing the IPA
-normally. See
-[`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the evidence checklist.
+LiveContainer is not currently a supported or verified install path. Multiple
+users have reported that SunPad fails there, but no actionable LiveContainer
+error or crash report has been received yet, so the cause is unknown. A current
+upstream source and package review found no obvious layout defect. If you
+reproduce the issue, please [submit a bug
+report](https://github.com/chrissotraidis/sunpad/issues/new?template=bug_report.yml)
+with LiveContainer's copied launch error or exported crash report and follow
+the evidence checklist in [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md). The
+supported preview path remains re-signing both the app and its nested module,
+then installing the IPA normally.
 
 ### Do saves survive an app update?
 
