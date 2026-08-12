@@ -1,6 +1,6 @@
 # Maintainer Notes
 
-Last updated: 2026-08-10
+Last updated: 2026-08-12
 
 This is a public maintainer summary, not a machine-specific handoff. SunPad is
 an experimental developer preview for `GMSE01` USA revision 0. Its unsigned
@@ -52,6 +52,11 @@ device data, and never use a removing CoreDevice container overlay for updates.
   iPhone 15 Pro or newer for iPhone development testing.
 - iOS 16.0 and macOS 14.0 are configured deployment targets. Fresh complete
   artifacts still need minimum-OS inspection and oldest-target runtime tests.
+
+The evidence-ranked performance diagnosis and future implementation queue live
+in [TECH-DEBT.md](TECH-DEBT.md). Start there before changing 60 FPS, AOT
+generation, fallback behavior, vertex loading, renderer synchronization, or
+performance diagnostics.
 
 ## Public-release gates still open
 
