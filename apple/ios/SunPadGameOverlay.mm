@@ -142,6 +142,16 @@ static CGRect SunPadFrameAtNormalizedCenter(CGRect safe, CGFloat x, CGFloat y,
 static NSString *const SunPadExperimentalDPadOriginKey = @"SunPadExperimentalDPadOrigin";
 static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPadScale";
 
+static BOOL SunPadUsesPhoneLayoutDefaults(UIView *view) {
+    return view.traitCollection.userInterfaceIdiom == UIUserInterfaceIdiomPhone;
+}
+
+static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifier) {
+    return SunPadUsesPhoneLayoutDefaults(view) && [identifier isEqualToString:@"B"]
+        ? 1.158457040786743
+        : 1.0;
+}
+
 @interface SunPadTriggerButton : SunPadGameButton
 @property(nonatomic, copy) void (^pressureChanged)(uint8_t pressure, BOOL fullPress);
 - (void)resetState;
@@ -803,6 +813,7 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
     // phones and a fixed larger set on iPads (width >= 1000).
     BOOL pad = self.traitCollection.userInterfaceIdiom == UIUserInterfaceIdiomPad &&
                safe.size.width >= 1000.0;
+    BOOL phone = SunPadUsesPhoneLayoutDefaults(self);
     CGFloat baseScale = pad ? 1.0
                             : std::min<CGFloat>(1.0, std::min(safe.size.width / 800.0,
                                                               safe.size.height / 380.0));
@@ -814,7 +825,8 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
     CGFloat medium = (pad ? 76.0 : 58.0 * baseScale) * controlScale;
     CGFloat large = (pad ? 104.0 : 78.0 * baseScale) * controlScale;
 
-    CGRect moveDefault = pad ?
+    CGRect moveDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.1234722222, 0.7803490991, stick, stick) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.1310395315, 0.7905894519, stick, stick) :
         CGRectMake(CGRectGetMinX(safe) + margin,
                    CGRectGetMaxY(safe) - stick - margin, stick, stick);
@@ -822,7 +834,8 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
           defaultFrame:moveDefault
             identifier:@"move"];
     CGFloat camera = (pad ? 112.0 : 86.0 * baseScale) * controlScale;
-    CGRect cameraDefault = pad ?
+    CGRect cameraDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.9233055556, 0.8130067568, camera, camera) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.9062957540, 0.8583247156, camera, camera) :
         CGRectMake(CGRectGetMaxX(safe) - margin - camera,
                    CGRectGetMaxY(safe) - margin - camera, camera, camera);
@@ -834,7 +847,8 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
     SunPadGameButton *b = [self buttonWithMask:SunPadButtonB];
     SunPadGameButton *x = [self buttonWithMask:SunPadButtonX];
     SunPadGameButton *y = [self buttonWithMask:SunPadButtonY];
-    CGRect aDefault = pad ?
+    CGRect aDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.8916544656, 0.7409513961, large, large) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8916544656, 0.7409513961, large, large) :
         CGRectMake(CGRectGetMaxX(safe) - margin - large,
                    CGRectGetMaxY(safe) - margin - camera - large - 18.0 * scale,
@@ -842,21 +856,24 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
     [self placeControl:a
           defaultFrame:aDefault
             identifier:@"A"];
-    CGRect bDefault = pad ?
+    CGRect bDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.8398611111, 0.6898648649, medium, medium) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8360175695, 0.8092037229, medium, medium) :
         CGRectMake(CGRectGetMinX(a.frame) - medium - 12.0 * scale,
                    CGRectGetMidY(a.frame) + 8.0, medium, medium);
     [self placeControl:b
           defaultFrame:bDefault
             identifier:@"B"];
-    CGRect xDefault = pad ?
+    CGRect xDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.9034166667, 0.4258445946, small, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.9593704246, 0.7156153051, small, small) :
         CGRectMake(CGRectGetMidX(a.frame) - small * 0.5,
                    CGRectGetMinY(a.frame) - small - 10.0 * scale, small, small);
     [self placeControl:x
           defaultFrame:xDefault
             identifier:@"X"];
-    CGRect yDefault = pad ?
+    CGRect yDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.8452500000, 0.5268581081, small, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.9542459736, 0.7869700103, small, small) :
         CGRectMake(CGRectGetMinX(a.frame) - small - 8.0 * scale,
                    CGRectGetMinY(a.frame) - small + 8.0, small, small);
@@ -866,7 +883,9 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
 
     CGFloat shoulderWidth = (pad ? 132.0 : 94.0 * baseScale) * controlScale;
     CGFloat shoulderY = CGRectGetMinY(safe) + (pad ? 92.0 : 68.0 * baseScale);
-    CGRect lDefault = pad ?
+    CGRect lDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.0905833333, 0.2539977477,
+                                      shoulderWidth, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.1281112738, 0.6633919338,
                                       shoulderWidth, small) :
         CGRectMake(CGRectGetMinX(safe) + margin, shoulderY, shoulderWidth, small);
@@ -875,7 +894,9 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
             identifier:@"L"];
     CGFloat rightShoulderWidth = shoulderWidth + 2.0 * small + 24.0 * scale;
     SunPadGameButton *rightShoulder = [self buttonWithMask:SunPadButtonR];
-    CGRect rDefault = pad ?
+    CGRect rDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.8687500000, 0.2729166667,
+                                      rightShoulderWidth, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8960468521, 0.6478800414,
                                       rightShoulderWidth, small) :
         CGRectMake(CGRectGetMaxX(safe) - margin - rightShoulderWidth, shoulderY,
@@ -883,7 +904,8 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
     [self placeControl:rightShoulder
           defaultFrame:rDefault
             identifier:@"R"];
-    CGRect zDefault = pad ?
+    CGRect zDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.9712500000, 0.4350788288, small, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8275988287, 0.7213029990, small, small) :
         CGRectMake(CGRectGetMaxX(safe) - margin - shoulderWidth - small - 12.0 * scale,
                    shoulderY, small, small);
@@ -891,7 +913,9 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
           defaultFrame:zDefault
             identifier:@"Z"];
     CGFloat startWidth = (pad ? 116.0 : 92.0 * baseScale) * controlScale;
-    CGRect startDefault = pad ?
+    CGRect startDefault = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.0902222222, 0.1128941441,
+                                      startWidth, small) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8967789165, 0.5780765253,
                                       startWidth, small) :
         CGRectMake(CGRectGetMidX(safe) - startWidth * 0.5,
@@ -902,7 +926,9 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
 
     CGFloat d = (pad ? 48.0 : 36.0 * baseScale) * controlScale;
     CGFloat dx = CGRectGetMaxX(_moveStick.frame) + (pad ? 34.0 : 18.0 * scale);
-    CGRect defaultGroupFrame = pad ?
+    CGRect defaultGroupFrame = phone ?
+        SunPadFrameAtNormalizedCenter(safe, 0.0812777778, 0.4677364865,
+                                      3.0 * d, 3.0 * d) : pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.2686676428, 0.7947259566,
                                       3.0 * d, 3.0 * d) :
         CGRectMake(dx, CGRectGetMidY(_moveStick.frame) - 1.5 * d, 3.0 * d, 3.0 * d);
@@ -987,7 +1013,11 @@ static NSString *const SunPadExperimentalDPadScaleKey = @"SunPadExperimentalDPad
 }
 
 - (void)placeControl:(UIView *)control defaultFrame:(CGRect)defaultFrame identifier:(NSString *)identifier {
-    CGFloat individualScale = [[SunPadSettings sharedSettings] sizeScaleForControl:identifier];
+    NSDictionary *savedScales = [[NSUserDefaults standardUserDefaults]
+        dictionaryForKey:@"SunPadControlSizeScales"];
+    CGFloat individualScale = savedScales[identifier] != nil
+        ? [[SunPadSettings sharedSettings] sizeScaleForControl:identifier]
+        : SunPadDefaultSizeScaleForControl(self, identifier);
     control.bounds = CGRectMake(0, 0, defaultFrame.size.width * individualScale,
                                 defaultFrame.size.height * individualScale);
     NSDictionary *saved = [[NSUserDefaults standardUserDefaults]
