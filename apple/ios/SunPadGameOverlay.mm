@@ -847,8 +847,10 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     SunPadGameButton *b = [self buttonWithMask:SunPadButtonB];
     SunPadGameButton *x = [self buttonWithMask:SunPadButtonX];
     SunPadGameButton *y = [self buttonWithMask:SunPadButtonY];
-    CGRect aDefault = phone ?
-        SunPadFrameAtNormalizedCenter(safe, 0.8916544656, 0.7409513961, large, large) : pad ?
+    // A was not present in the captured iPhone preferences because it was not
+    // moved. Keep the original phone fallback so the sparse captured layout
+    // reconstructs the exact arrangement the user made.
+    CGRect aDefault = pad ?
         SunPadFrameAtNormalizedCenter(safe, 0.8916544656, 0.7409513961, large, large) :
         CGRectMake(CGRectGetMaxX(safe) - margin - large,
                    CGRectGetMaxY(safe) - margin - camera - large - 18.0 * scale,
