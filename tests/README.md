@@ -22,6 +22,7 @@ Focused source regression gates:
 ./tests/test-controller-mapping.sh
 ./tests/test-experimental-60fps-config.sh
 ./tests/test-diagnostics.sh
+./tests/test-iphone-touch-layout-defaults.sh
 ```
 
 Before publishing or merging release-hardening work, run the combined
