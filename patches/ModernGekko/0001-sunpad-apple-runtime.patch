@@ -168,7 +168,7 @@ index 981e098..1ddc25c 100644
    const WindowSystemInfo wsi = impl->platform->GetWindowSystemInfo();
    UICommon::InitControllers(wsi);
    impl->controllers_initialized = true;
-@@ -275,6 +332,8 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -275,6 +332,11 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
    impl->platform->SetTitle(impl->title);
  
    Config::SetBase(Config::MAIN_CPU_CORE, PowerPC::CPUCore::StaticRecomp);
