@@ -79,6 +79,16 @@
                                             forKey:@"SunPadExperimental60FPS"];
 }
 
+- (BOOL)experimentalPerformanceMode {
+    return [[NSUserDefaults standardUserDefaults]
+        boolForKey:@"SunPadExperimentalPerformanceMode"];
+}
+
+- (void)setExperimentalPerformanceMode:(BOOL)experimentalPerformanceMode {
+    [[NSUserDefaults standardUserDefaults] setBool:experimentalPerformanceMode
+                                            forKey:@"SunPadExperimentalPerformanceMode"];
+}
+
 - (BOOL)hideTouchControlsWhenControllerConnected {
     NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"SunPadHideControlsOnController"];
     return value == nil ? YES : value.boolValue;

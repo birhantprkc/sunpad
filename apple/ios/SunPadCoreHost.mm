@@ -4,6 +4,7 @@
 
 #import <AVFAudio/AVFAudio.h>
 #import <fcntl.h>
+#import <pthread.h>
 #import <sys/stat.h>
 
 #include <atomic>
@@ -23,6 +24,7 @@ namespace fs = std::filesystem;
 #include "moderngekko/runtime.hpp"
 
 #include "Core/Core.h"
+#include "Core/Config/StaticRecompSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/System.h"
 #include "VideoCommon/PerformanceMetrics.h"
@@ -185,6 +187,22 @@ namespace fs = std::filesystem;
             [NSProcessInfo.processInfo.arguments containsObject:@"-sunpadExperimental60FPS"];
         BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
         config.enable_gmse01_60fps = launchArgument60FPS || menuPreference60FPS;
+        BOOL launchArgumentPerformance = [NSProcessInfo.processInfo.arguments
+            containsObject:@"-sunpadExperimentalPerformanceMode"];
+        BOOL menuPreferencePerformance =
+            [SunPadSettings sharedSettings].experimentalPerformanceMode;
+        BOOL useExperimentalPerformance =
+            launchArgumentPerformance || menuPreferencePerformance;
+        if (useExperimentalPerformance)
+            config.emulated_cpu_clock_scale = 0.90f;
+        if (useExperimentalPerformance) {
+            const int qosResult =
+                pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+            SunPadLog(@"runtime performance profile=experimental-single-core-90 cpuVideoSplit=0 emulatedCPUClock=0.90 gameThreadQoS=userInitiated qosResult=%d source=%@",
+                      qosResult, launchArgumentPerformance ? @"launch argument" : @"menu preference");
+        } else {
+            SunPadLog(@"runtime performance profile=stable cpuVideoSplit=0 emulatedCPUClock=1.00 gameThreadQoS=inherited source=default");
+        }
         config.render_surface = (__bridge void *)_layer;
         config.module = moderngekko::ModuleSource::DynamicPath(
             modulePath.fileSystemRepresentation);
@@ -207,6 +225,11 @@ namespace fs = std::filesystem;
             }
             return;
         }
+        // GMSE01's OS scheduler waits here while no guest thread is runnable.
+        // ModernGekko's existing idle seam advances to the next emulated event
+        // instead of burning the host CPU on the polling loop.
+        Config::SetBase(Config::MAIN_STATICRECOMP_IDLE_PC, 0x80348814u);
+        SunPadLog(@"runtime scheduler idle skip=enabled pc=80348814");
         {
             std::scoped_lock lock(*_runtimeMutex);
             _runtime = created.runtime.get();
@@ -385,6 +408,14 @@ namespace fs = std::filesystem;
 
 - (void)resumeRuntimeAfterSystemEvent {
     _applicationActive = YES;
+    if (_audioInterrupted) {
+        // iOS can omit the interruption-ended notification after system UI
+        // such as screenshot capture. Foreground activation is our recovery
+        // boundary; setActive below remains the authority and will retry if a
+        // real interruption still owns the audio session.
+        _audioInterrupted = NO;
+        SunPadLog(@"audio interruption latch cleared on foreground activation");
+    }
     _systemStateRetryAttempts = 0;
     [self applySystemPauseState];
 }

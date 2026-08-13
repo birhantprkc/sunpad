@@ -1,15 +1,19 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 2 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 3 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 2 includes the promoted analog R and grouped D-pad controls, accepted
-large-iPad default mapping, controller remapping, loading and performance
-diagnostics, and the corrected ISO/GCM import flow.
+Preview 3 includes the promoted analog R and grouped D-pad controls, accepted
+iPad and iPhone defaults, controller remapping, loading and expanded
+performance diagnostics, Game Mode eligibility, and the corrected ISO/GCM
+import flow. The default-off **Experimental Performance Mode (Restart
+Required)** can improve performance on some devices but may affect game timing,
+audio, or physics. Stable mode remains the default; reproduce any problem and
+share the diagnostic log from the three-dot menu.
 
 1. Download
-   [`SunPad-0.1.0-preview.2-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.2/SunPad-0.1.0-preview.2-unsigned.ipa)
-   from the [Preview 2 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.2).
+   [`SunPad-0.1.0-preview.3-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.3/SunPad-0.1.0-preview.3-unsigned.ipa)
+   from the [Preview 3 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.3).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

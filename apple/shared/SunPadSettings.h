@@ -32,6 +32,11 @@ typedef NS_ENUM(NSInteger, SunPadAspectRatioMode) {
  * the next app launch. */
 @property(nonatomic, assign) BOOL experimental60FPS;
 
+/* Experimental weak-device performance policy. Off by default and applied on
+ * the next app launch. It retains single-core synchronization while reducing
+ * the emulated CPU clock to 90%. */
+@property(nonatomic, assign) BOOL experimentalPerformanceMode;
+
 /* Touch-control presentation. */
 @property(nonatomic, assign) BOOL hideTouchControlsWhenControllerConnected;
 /* Reverses only the C-stick horizontal axis for modern camera movement. */

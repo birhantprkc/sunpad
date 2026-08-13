@@ -48,7 +48,7 @@ game module.
 | Controllers | Touch and iOS GameController on mobile; keyboard or connected controller on macOS; narrow A/B/X/Y/Z physical-button remapping is implemented in source and awaiting device acceptance |
 | Settings | Live 1×–4× render scale, original 4:3 plus experimental widescreen/fill modes, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 2 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 3 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,10 +69,13 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.2-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.2/SunPad-0.1.0-preview.2-unsigned.ipa).
-Preview 2 includes the promoted analog-R/grouped-D-pad baseline, accepted iPad
-default mapping, controller remapping, loading and diagnostics improvements,
-and the corrected ISO/GCM import flow with a Files-visible SunPad folder.
+[`SunPad-0.1.0-preview.3-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.3/SunPad-0.1.0-preview.3-unsigned.ipa).
+Preview 3 includes the promoted analog-R/grouped-D-pad baseline, accepted iPad
+and iPhone defaults, controller remapping, loading and expanded performance
+diagnostics, Game Mode eligibility, and the corrected ISO/GCM import flow with
+a Files-visible SunPad folder. Its new **Experimental Performance Mode
+(Restart Required)** is default-off and intended to collect comparable iPhone
+and iPad evidence; stable performance behavior remains the default.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -297,7 +300,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 2** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 3** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game
@@ -330,6 +333,13 @@ No. The current build is playable and useful for development testing, but
 physical-device audio re-acceptance, iPhone performance, broader scene
 coverage, physical lifecycle/save acceptance, compressed image support, and
 broader macOS gameplay acceptance remain explicit work. A default-off
+**Experimental Performance Mode (Restart Required)** keeps Sunshine's
+single-thread synchronization, reduces the emulated CPU clock to 90%, and uses
+Apple's foreground-game scheduling priority. It may improve performance on
+some iPhones and iPads, but can affect game timing, audio, or physics. It is a
+test option rather than a supported performance guarantee; after reproducing a
+problem, use **••• → Share Diagnostic Log…** and include the device model,
+iOS/iPadOS version, scene, and approximate play duration. A separate default-off
 **Experimental 60 FPS (Restart Required)** three-dot-menu option is test-only
 and is known from hands-on physical-iPad testing to be unsuitable for normal
 play. Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD

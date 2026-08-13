@@ -46,13 +46,16 @@ index af75a25..f6bc86c 100644
    std::filesystem::path user_directory;
    ModuleSource module;
    std::vector<std::filesystem::path> mod_directories;
-@@ -65,7 +68,13 @@ struct RuntimeConfig
+@@ -65,7 +68,16 @@ struct RuntimeConfig
    bool fullscreen = false;
    bool allow_interpreter = false;
    bool show_fps_in_title = true;
 +  // Test-only Sunshine frame-rate experiment. When enabled for GMSE01, the
 +  // runtime activates only Dolphin's bundled 60FPS Gecko code at boot.
 +  bool enable_gmse01_60fps = false;
++  // Optional diagnostic clock multiplier for weak-device testing. A value
++  // below 1.0 reduces emulated CPU work and may change guest timing.
++  std::optional<float> emulated_cpu_clock_scale;
    std::optional<std::string> window_title;
 +  // Host-provided render surface (a CAMetalLayer on iOS). The platform hands
 +  // this to the video backend as WindowSystemInfo::render_surface.
@@ -165,6 +168,18 @@ index 981e098..1ddc25c 100644
    const WindowSystemInfo wsi = impl->platform->GetWindowSystemInfo();
    UICommon::InitControllers(wsi);
    impl->controllers_initialized = true;
+@@ -275,6 +332,11 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+   impl->platform->SetTitle(impl->title);
+ 
+   Config::SetBase(Config::MAIN_CPU_CORE, PowerPC::CPUCore::StaticRecomp);
++  if (impl->config.emulated_cpu_clock_scale)
++  {
++    Config::SetBase(Config::MAIN_OVERCLOCK_ENABLE, true);
++    Config::SetBase(Config::MAIN_OVERCLOCK, *impl->config.emulated_cpu_clock_scale);
++  }
+   if (!impl->config.graphics.backend.empty())
+     Config::SetBase(Config::MAIN_GFX_BACKEND, impl->config.graphics.backend);
+   else if (impl->config.headless)
 @@ -284,6 +341,14 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
    Config::SetBase(Config::GFX_SHADER_COMPILATION_MODE,
                    ShaderCompilationMode::AsynchronousUberShaders);

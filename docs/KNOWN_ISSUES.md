@@ -121,7 +121,17 @@ Last updated: 2026-08-13
     The prior log lacked speed, thermal, and render-state samples. New builds
     record one bounded performance line every 10 seconds; reproduce and share
     that log before changing timing or renderer behavior.
-20. **Platform/accessory/mod requests are backlog research** — the Wii U
+20. **Experimental Performance Mode is opt-in research, not a universal fix**
+    — the default-off, restart-required option keeps Sunshine on the
+    synchronized single CPU-GPU thread, reduces the emulated CPU clock to 90%,
+    and applies `userInitiated` QoS. It produced measurable headroom in two
+    confirmed-gameplay iPhone 14 traces at Serious thermal state, but may alter
+    game timing, audio, physics, or scene behavior. The earlier dual-core route
+    is rejected because confirmed gameplay produced a FIFO Unknown Opcode from
+    CPU/GPU desynchronization. After reproducing a problem, use **••• → Share
+    Diagnostic Log…** and include device model, OS version, scene, approximate
+    play duration, and whether the mode was enabled.
+21. **Platform/accessory/mod requests are backlog research** — the Wii U
     GameCube Adapter is disabled by the current iOS no-op backend. HD textures,
     Vision Pro, Apple TV, and Eclipse/general mods have no accepted mobile
     product path yet. Keep them separate from the current stability work and
