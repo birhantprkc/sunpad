@@ -13,11 +13,15 @@ done
 python3 -c 'import ast,pathlib; [ast.parse(p.read_text(), filename=str(p)) for p in pathlib.Path("scripts").glob("*.py")]'
 python3 -c 'import json,pathlib; [json.loads(p.read_text()) for p in pathlib.Path("apple/ios/Assets.xcassets").rglob("*.json")]'
 plutil -lint apple/ios/Info.plist apple/macos/Info.plist
+[[ "$(plutil -extract LSApplicationCategoryType raw apple/ios/Info.plist)" == "public.app-category.games" ]]
+[[ "$(plutil -extract LSSupportsGameMode raw apple/ios/Info.plist)" == "true" ]]
+[[ "$(plutil -extract GCSupportsGameMode raw apple/ios/Info.plist)" == "true" ]]
 ./scripts/check-markdown-links.py
 
 ./tests/test-input-pipe-encoder.sh
 ./tests/test-controller-mapping.sh
 ./tests/test-experimental-60fps-config.sh
+./tests/test-experimental-performance-config.sh
 ./tests/test-diagnostics.sh
 
 test -x scripts/package-ios.sh

@@ -128,8 +128,13 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 - iPhone 14 boot is proven but performance is below the iPad experience even
   at 1×; iPhone 15 Pro or newer is recommended for iPhone development testing.
 - A community iPhone 15 Pro report describes slowdown after several minutes,
-  but diagnosis is blocked on receiving the offered SunPad log and exact
-  reproduction details. No cause or device-specific fix is confirmed.
+  and physical-iPhone 14 testing reproduced the single-core ceiling. A
+  default-off **Experimental Performance Mode (Restart Required)** now exposes
+  the synchronized 90%-clock, `userInitiated` profile for wider evidence
+  collection. Two confirmed-gameplay iPhone 14 traces showed measurable CPU
+  headroom at Serious thermal state, but timing/audio/physics and broader-device
+  acceptance remain open. The dual-core route is rejected after a confirmed
+  FIFO CPU/GPU-desynchronization failure. No universal fix is claimed.
 - LiveContainer is not a supported or verified launch path. One failure report
   exists, but its LiveContainer version, device/OS, nested-module signature,
   launch output, and SunPad log have not been collected.

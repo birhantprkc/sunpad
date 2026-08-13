@@ -122,6 +122,17 @@ headlessly for verification.
     --destination /tmp/sunpad-app-logs
   ```
 
+- The default-off **Experimental Performance Mode (Restart Required)** retains
+  Sunshine's synchronized single CPU-GPU thread, reduces the emulated CPU
+  clock to 90%, and assigns `userInitiated` QoS to the host game thread. The
+  runtime log records either `experimental-single-core-90` or `stable`, so
+  reports identify the tested profile. The mode may improve headroom on some
+  iPhones and iPads but can change guest timing, audio, or physics. Testers
+  should reproduce a problem, share the diagnostic log, and report device
+  model, OS version, scene, approximate play duration, and observed behavior.
+  Changing the option applies on the next launch; the stable profile remains
+  the default.
+
 - While the runtime is booting, an activity indicator and honest **Preparing
   runtime**, **Starting game**, and **Waiting for first frame** phases replace
   the former unexplained black surface. There is no synthetic percentage. The
@@ -163,7 +174,13 @@ expose a VoiceOver setting:
    D-pad, Start, left shoulder, analog L/R pressure, touch/controller merging,
    and controller handoff. Reset and corrupt persistence must return to the
    current default mapping.
-5. **60 FPS testing.** Any mode is default-off, requires a restart, and is not
+5. **Performance-mode testing.** Keep the synchronized single CPU-GPU thread;
+   the dual-core experiment is rejected because confirmed gameplay produced a
+   FIFO Unknown Opcode from CPU/GPU desynchronization. The default-off 90%
+   clock mode requires hands-on timing, audio, physics, save/reload, lifecycle,
+   and sustained-scene reports across iPhone and iPad hardware before support
+   claims or default changes.
+6. **60 FPS testing.** Any mode is default-off, requires a restart, and is not
    supported until gameplay timing, physics, animation, cutscenes, audio,
    controller polling, save/reload, and a sustained hands-on physical gameplay
    session pass. The three-dot menu exposes **Experimental 60 FPS (Restart
@@ -171,7 +188,7 @@ expose a VoiceOver setting:
    remains the default. Although the telemetry/thermal subgate passed, a later
    hands-on physical-iPad test judged the mode unusable for normal play. Keep
    it explicitly experimental; live switching is out of scope.
-6. **Backlog only.** Wii U GameCube Adapter, HD textures, Vision Pro, Apple TV,
+7. **Backlog only.** Wii U GameCube Adapter, HD textures, Vision Pro, Apple TV,
    and Eclipse/general mods require separate feasibility work. The current iOS
    GameCube-adapter backend is a no-op, and generic runtime capabilities do not
    prove any of these product paths.

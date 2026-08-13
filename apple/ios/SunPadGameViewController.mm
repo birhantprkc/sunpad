@@ -15,7 +15,13 @@
 #import <TargetConditionals.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#include <mach/mach.h>
+#include <pthread.h>
+#include <sys/resource.h>
+#include <algorithm>
 #include <cmath>
+#include <unordered_map>
+#include <vector>
 
 static constexpr CGFloat SunPadDrawableScale = 1.0;
 static NSString *const SunPadSupportedImageSHA256 =
@@ -29,6 +35,81 @@ static NSString *SunPadThermalStateName(NSProcessInfoThermalState state) {
     case NSProcessInfoThermalStateNominal:
     default: return @"nominal";
     }
+}
+
+static BOOL SunPadProcessUsage(double *cpuSeconds, double *residentMiB) {
+    struct rusage usage = {};
+    if (getrusage(RUSAGE_SELF, &usage) != 0)
+        return NO;
+
+    mach_task_basic_info_data_t info = {};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    kern_return_t result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                                     reinterpret_cast<task_info_t>(&info), &count);
+    if (result != KERN_SUCCESS)
+        return NO;
+
+    *cpuSeconds = (double)usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / 1e6 +
+                  (double)usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / 1e6;
+    *residentMiB = (double)info.resident_size / (1024.0 * 1024.0);
+    return YES;
+}
+
+static NSString *SunPadTopThreadUsage(NSTimeInterval elapsed) {
+    static std::unordered_map<uint64_t, double> previousCPUSeconds;
+    if (elapsed <= 0.0)
+        return @"unavailable";
+
+    thread_act_array_t threads = nullptr;
+    mach_msg_type_number_t threadCount = 0;
+    if (task_threads(mach_task_self(), &threads, &threadCount) != KERN_SUCCESS)
+        return @"unavailable";
+
+    struct ThreadSample {
+        double percent;
+        std::string name;
+    };
+    std::vector<ThreadSample> samples;
+    std::unordered_map<uint64_t, double> currentCPUSeconds;
+    for (mach_msg_type_number_t index = 0; index < threadCount; ++index) {
+        thread_identifier_info_data_t identifier = {};
+        mach_msg_type_number_t identifierCount = THREAD_IDENTIFIER_INFO_COUNT;
+        thread_basic_info_data_t basic = {};
+        mach_msg_type_number_t basicCount = THREAD_BASIC_INFO_COUNT;
+        if (thread_info(threads[index], THREAD_IDENTIFIER_INFO,
+                        reinterpret_cast<thread_info_t>(&identifier), &identifierCount) == KERN_SUCCESS &&
+            thread_info(threads[index], THREAD_BASIC_INFO,
+                        reinterpret_cast<thread_info_t>(&basic), &basicCount) == KERN_SUCCESS) {
+            double total = basic.user_time.seconds + basic.user_time.microseconds / 1e6 +
+                           basic.system_time.seconds + basic.system_time.microseconds / 1e6;
+            currentCPUSeconds[identifier.thread_id] = total;
+            auto previous = previousCPUSeconds.find(identifier.thread_id);
+            if (previous != previousCPUSeconds.end() && total >= previous->second) {
+                char threadName[64] = {};
+                pthread_t pthread = pthread_from_mach_thread_np(threads[index]);
+                if (pthread != nullptr)
+                    pthread_getname_np(pthread, threadName, sizeof(threadName));
+                std::string name = threadName[0] != '\0' ? threadName : "unnamed";
+                samples.push_back({100.0 * (total - previous->second) / elapsed,
+                                   std::move(name)});
+            }
+        }
+        mach_port_deallocate(mach_task_self(), threads[index]);
+    }
+    vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(threads),
+                  threadCount * sizeof(thread_t));
+    previousCPUSeconds = std::move(currentCPUSeconds);
+
+    std::sort(samples.begin(), samples.end(), [](const ThreadSample& left,
+                                                  const ThreadSample& right) {
+        return left.percent > right.percent;
+    });
+    NSMutableArray<NSString *> *top = [NSMutableArray array];
+    for (std::size_t index = 0; index < std::min<std::size_t>(samples.size(), 3); ++index) {
+        [top addObject:[NSString stringWithFormat:@"%s:%.1f",
+            samples[index].name.c_str(), samples[index].percent]];
+    }
+    return top.count > 0 ? [top componentsJoinedByString:@","] : @"baseline";
 }
 
 static SunPadPhysicalControllerButton SunPadPressedFaceButtons(GCExtendedGamepad *pad) {
@@ -145,6 +226,9 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     UIActivityIndicatorView *_bootActivityIndicator;
     CGSize _lastLoggedDrawableSize;
     NSUInteger _performanceLogSeconds;
+    double _lastPerformanceCPUSeconds;
+    NSTimeInterval _lastPerformanceUptime;
+    BOOL _hasPerformanceUsageBaseline;
 }
 
 - (BOOL)shouldAutorotate {
@@ -161,6 +245,8 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     [super viewDidLoad];
     SunPadLog(@"viewDidLoad bounds=%@ orientation=%ld",
               NSStringFromCGRect(self.view.bounds), (long)UIDevice.currentDevice.orientation);
+    SunPadLog(@"game mode eligibility declared=%d",
+              [[NSBundle.mainBundle objectForInfoDictionaryKey:@"LSSupportsGameMode"] boolValue]);
     self.view.backgroundColor = UIColor.blackColor;
 
     _gameView = [[SunPadMetalSurfaceView alloc] initWithFrame:self.view.bounds];
@@ -312,11 +398,30 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
         if (++_performanceLogSeconds >= 10) {
             _performanceLogSeconds = 0;
             NSProcessInfo *processInfo = NSProcessInfo.processInfo;
-            SunPadLog(@"performance fps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld thermal=%@ lowPower=%d",
+            double cpuSeconds = 0.0;
+            double residentMiB = 0.0;
+            NSTimeInterval uptime = processInfo.systemUptime;
+            BOOL hasUsage = SunPadProcessUsage(&cpuSeconds, &residentMiB);
+            double appCPUPercent = -1.0;
+            NSTimeInterval usageInterval = 0.0;
+            if (hasUsage && _hasPerformanceUsageBaseline &&
+                uptime > _lastPerformanceUptime) {
+                usageInterval = uptime - _lastPerformanceUptime;
+                appCPUPercent = 100.0 * (cpuSeconds - _lastPerformanceCPUSeconds) /
+                                usageInterval;
+            }
+            if (hasUsage) {
+                _lastPerformanceCPUSeconds = cpuSeconds;
+                _lastPerformanceUptime = uptime;
+                _hasPerformanceUsageBaseline = YES;
+            }
+            NSString *topThreads = SunPadTopThreadUsage(usageInterval);
+            SunPadLog(@"performance fps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
                       fps, [_coreHost currentSpeed], [_coreHost efbResolution],
                       (long)[SunPadSettings sharedSettings].renderScale,
                       SunPadThermalStateName(processInfo.thermalState),
-                      processInfo.isLowPowerModeEnabled);
+                      processInfo.isLowPowerModeEnabled, appCPUPercent, residentMiB,
+                      topThreads);
         }
     } else if (_coreHost != nil && !_bootStatusLabel.hidden &&
                _bootActivityIndicator.isAnimating) {
@@ -474,12 +579,64 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     // absolute path persisted by a previous installation.
     NSString *supportRoot = [self sunPadSupportRoot];
     NSString *gameDataDirectory = [supportRoot stringByAppendingPathComponent:@"GameData"];
+
+    // Side-by-side diagnostic builds may carry a known progressed save so a
+    // performance run can begin in representative gameplay. Seed it exactly
+    // once per identifier; production configurations omit these keys.
+    NSString *bundledSaveRelativePath = config[@"DeviceBundledSaveRelativePath"];
+    NSString *bundledSaveSeedID = config[@"DeviceBundledSaveSeedID"];
+    NSString *saveSeedPreference = @"SunPadDeviceBundledSaveSeedID";
+    if (bundledSaveRelativePath.length > 0 && bundledSaveSeedID.length > 0 &&
+        ![[[NSUserDefaults standardUserDefaults] stringForKey:saveSeedPreference]
+            isEqualToString:bundledSaveSeedID]) {
+        NSString *bundledSave =
+            [bundle.bundlePath stringByAppendingPathComponent:bundledSaveRelativePath];
+        NSString *saveDirectory = [supportRoot
+            stringByAppendingPathComponent:@"GC/USA/Card A"];
+        NSString *saveDestination = [saveDirectory
+            stringByAppendingPathComponent:bundledSave.lastPathComponent];
+        NSError *saveError = nil;
+        [fileManager createDirectoryAtPath:saveDirectory
+              withIntermediateDirectories:YES
+                               attributes:nil
+                                    error:&saveError];
+        if (saveError == nil) {
+            NSString *temporarySave = [saveDestination stringByAppendingString:@".seed"];
+            [fileManager removeItemAtPath:temporarySave error:nil];
+            if ([fileManager copyItemAtPath:bundledSave toPath:temporarySave error:&saveError]) {
+                [fileManager removeItemAtPath:saveDestination error:nil];
+                if ([fileManager moveItemAtPath:temporarySave
+                                         toPath:saveDestination
+                                          error:&saveError]) {
+                    [[NSUserDefaults standardUserDefaults]
+                        setObject:bundledSaveSeedID forKey:saveSeedPreference];
+                    [[NSUserDefaults standardUserDefaults] synchronize];
+                    SunPadLog(@"diagnostic save seeded file=%@ id=%@",
+                              saveDestination.lastPathComponent, bundledSaveSeedID);
+                }
+            }
+        }
+        if (saveError != nil)
+            SunPadLog(@"diagnostic save seed failed: %@", saveError);
+    }
+
     NSString *currentContainerRoot = [gameDataDirectory stringByAppendingPathComponent:@"GMSE01"];
     BOOL currentRootExists = [fileManager fileExistsAtPath:currentContainerRoot];
     NSString *gameRoot = currentContainerRoot;
 #if TARGET_OS_SIMULATOR
     if (!currentRootExists)
         gameRoot = config[@"DevGameRoot"];
+#else
+    // A side-by-side diagnostic build can be made self-contained when the
+    // CoreDevice data-container transfer service is unavailable. Production
+    // builds omit this key and continue to require imported sandbox data.
+    if (!currentRootExists) {
+        NSString *bundledRootRelativePath = config[@"DeviceBundledGameRootRelativePath"];
+        NSString *bundledRoot = bundledRootRelativePath.length > 0
+            ? [bundle.bundlePath stringByAppendingPathComponent:bundledRootRelativePath] : nil;
+        if (bundledRoot.length > 0 && [fileManager fileExistsAtPath:bundledRoot])
+            gameRoot = bundledRoot;
+    }
 #endif
     if (![settings.extractedGameRoot isEqualToString:gameRoot]) {
         settings.extractedGameRoot = gameRoot;
@@ -529,6 +686,14 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 #if TARGET_OS_SIMULATOR
     if (rebasedImage.length == 0 || ![fileManager fileExistsAtPath:rebasedImage])
         discImagePath = settings.retainedGameDataPath ?: @"";
+#else
+    if (rebasedImage.length == 0 || ![fileManager fileExistsAtPath:rebasedImage]) {
+        NSString *bundledDiscRelativePath = config[@"DeviceBundledDiscImageRelativePath"];
+        NSString *bundledDisc = bundledDiscRelativePath.length > 0
+            ? [bundle.bundlePath stringByAppendingPathComponent:bundledDiscRelativePath] : nil;
+        if (bundledDisc.length > 0 && [fileManager fileExistsAtPath:bundledDisc])
+            discImagePath = bundledDisc;
+    }
 #endif
     if (discImagePath.length > 0 &&
         ![settings.retainedGameDataPath isEqualToString:discImagePath]) {

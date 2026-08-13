@@ -433,9 +433,24 @@ index 886d51aeaf..6f7a7b07db 100644
      break;
    }
 diff --git a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Run.cpp b/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Run.cpp
-index 92562235ba..713a4060cf 100644
+index 92562235ba..9387eb2efe 100644
 --- a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Run.cpp
 +++ b/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Run.cpp
+@@ -75,10 +75,12 @@ void StaticRecompCore::Run()
+             ++m_dispatch_samples[m_guest.pc];
+           const u32 runtime_dispatch_address = m_guest.pc;
+           u32 linked_dispatch_address = runtime_dispatch_address;
+-          ResolveNativeAddress(runtime_dispatch_address, &linked_dispatch_address, nullptr);
++          if (m_module->num_rel_modules != 0)
++            ResolveNativeAddress(runtime_dispatch_address, &linked_dispatch_address, nullptr);
+           m_guest.pc = linked_dispatch_address;
+           m_module->dispatch(&m_guest, linked_dispatch_address);
+-          m_guest.pc = TranslateRelAddress(m_guest.pc);
++          if (m_module->num_rel_modules != 0)
++            m_guest.pc = TranslateRelAddress(m_guest.pc);
+           ++m_native_dispatches;
+ 
+           if (do_ls)
 @@ -97,7 +97,10 @@ void StaticRecompCore::Run()
            m_guest.downcount = 0;
            ppc.downcount -= static_cast<int>(charge > 0 ? charge : 1);
@@ -458,6 +473,23 @@ index 92562235ba..713a4060cf 100644
              SyncOut();
              continue;
            }
+diff --git a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_SMC.cpp b/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_SMC.cpp
+index 491c57ef3a..e16ac19d50 100644
+--- a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_SMC.cpp
++++ b/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_SMC.cpp
+@@ -206,7 +206,11 @@ int StaticRecompCore::ChunkIndexOf(u32 address)
+     return -1;
+ 
+   u32 linked_address = address;
+-  if (!ResolveNativeAddress(address, &linked_address, nullptr))
++  // A DOL-only module has no runtime-to-linked REL translation to perform.
++  // Avoid the resolver on this per-block hot path while retaining the exact
++  // existing path for modules that declare relocatable sections.
++  if (m_module->num_rel_modules != 0 &&
++      !ResolveNativeAddress(address, &linked_address, nullptr))
+     return -1;
+   int idx = GetAddressLookupIndex(linked_address);
+   if (idx < 0 || idx >= static_cast<int>(m_chunk_lookup_table.size()))
 diff --git a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Sync.cpp b/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Sync.cpp
 index c2482a7458..a17b72991c 100644
 --- a/Source/Core/Core/PowerPC/StaticRecomp/StaticRecompCore_Sync.cpp

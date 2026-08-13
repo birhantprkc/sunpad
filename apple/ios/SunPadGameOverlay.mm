@@ -492,6 +492,38 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     sixtyFPSAction.state = settings.experimental60FPS ?
         UIMenuElementStateOn : UIMenuElementStateOff;
 
+    UIAction *performanceAction =
+        [UIAction actionWithTitle:@"Experimental Performance Mode (Restart Required)"
+                            image:[UIImage systemImageNamed:@"gauge.with.dots.needle.67percent"]
+                       identifier:nil handler:^(__kindof UIAction *action) {
+        (void)action;
+        SunPadSettings *currentSettings = [SunPadSettings sharedSettings];
+        currentSettings.experimentalPerformanceMode =
+            !currentSettings.experimentalPerformanceMode;
+        [currentSettings synchronize];
+        [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
+        [weakSelf refreshMenuButton];
+
+        NSString *nextMode = currentSettings.experimentalPerformanceMode ?
+            @"experimental performance mode" : @"the stable performance mode";
+        NSString *warning = currentSettings.experimentalPerformanceMode ?
+            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, or physics. If you encounter a problem, reproduce it and use Share Diagnostic Log from this menu. " : @"";
+        UIAlertController *alert =
+            [UIAlertController alertControllerWithTitle:@"Restart Required"
+                                                message:[NSString stringWithFormat:
+                @"%@This change applies the next time SunPad launches. Close and reopen the app to use %@.",
+                warning, nextMode]
+                                         preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                  style:UIAlertActionStyleDefault
+                                                handler:nil]];
+        [weakSelf.window.rootViewController presentViewController:alert
+                                                         animated:YES
+                                                       completion:nil];
+    }];
+    performanceAction.state = settings.experimentalPerformanceMode ?
+        UIMenuElementStateOn : UIMenuElementStateOff;
+
     UIAction *shareLogAction =
         [UIAction actionWithTitle:@"Share Diagnostic Log…"
                             image:[UIImage systemImageNamed:@"square.and.arrow.up"]
@@ -504,6 +536,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         renderMenu,
         aspectMenu,
         fpsAction,
+        performanceAction,
         sixtyFPSAction,
         [UIAction actionWithTitle:@"Controller Button Mapping…"
                             image:[UIImage systemImageNamed:@"gamecontroller"]

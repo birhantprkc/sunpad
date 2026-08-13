@@ -330,6 +330,13 @@ No. The current build is playable and useful for development testing, but
 physical-device audio re-acceptance, iPhone performance, broader scene
 coverage, physical lifecycle/save acceptance, compressed image support, and
 broader macOS gameplay acceptance remain explicit work. A default-off
+**Experimental Performance Mode (Restart Required)** keeps Sunshine's
+single-thread synchronization, reduces the emulated CPU clock to 90%, and uses
+Apple's foreground-game scheduling priority. It may improve performance on
+some iPhones and iPads, but can affect game timing, audio, or physics. It is a
+test option rather than a supported performance guarantee; after reproducing a
+problem, use **••• → Share Diagnostic Log…** and include the device model,
+iOS/iPadOS version, scene, and approximate play duration. A separate default-off
 **Experimental 60 FPS (Restart Required)** three-dot-menu option is test-only
 and is known from hands-on physical-iPad testing to be unsuitable for normal
 play. Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD

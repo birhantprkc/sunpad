@@ -12,6 +12,10 @@ work. It records diagnosis and acceptance criteria only. It does not make the
 experimental mode supported and does not authorize removing correctness guards,
 enabling a PowerPC JIT, or weakening the project's game-data boundaries.
 
+The companion [Apple-platform performance research](APPLE-PERFORMANCE-RESEARCH.md)
+turns the iPhone/iPad findings into an offline-first measurement and experiment
+plan. It does not authorize another device install or a release.
+
 ## Executive verdict
 
 SunPad has two related but distinct problems:
@@ -77,8 +81,12 @@ must be measured rather than dismissed.
   module range, so SunPad executes that handler through the interpreter too.
 - The existing DolRecomp LLVM backend is not an iOS optimization switch. The
   pinned implementation explicitly accepts only x86-64 Linux and Windows
-  production targets. Supporting ARM64 Mach-O/iPhoneOS is upstream/toolchain
-  work that needs its own correctness and packaging validation.
+  production targets. An August 13 disposable probe generalized its target
+  setup, passed all 19 backend tests, emitted the real GMSE01 DOL as 221 ARM64
+  iOS objects, and linked the normal module ABI. The unoptimized result had
+  about 1.70 GB of executable text, so the proven target/link path is not a
+  viable full module. Hot-region LLVM plus compact C cold code is now the
+  relevant design, subject to a tested cross-backend budget/dispatch ABI.
 - Upstream Dolphin documents known Sunshine 60 FPS Gecko-code defects,
   including music problems and falling-star artifacts, and requires 60 Hz mode
   to avoid cutscene stutter. Those upstream limitations do not identify the
@@ -109,19 +117,31 @@ must be measured rather than dismissed.
 
 - Why the hands-on 60 FPS session was unusable. The test record did not classify
   animation, physics, dialogue, cutscene, audio, input, save, or camera defects.
-- Why one original-30-FPS session showed slow gameplay/dialogue while the FPS
-  label remained at 30. Its log predates speed, thermal, and render-state
-  sampling.
+- Which optimizations can safely recover the reproduced original-30-FPS
+  iPhone 14 deficit. August 13 captures at native 1x reproduced both
+  nominal-thermal 25.7-27.1 FPS / 0.872-0.910 speed and serious-thermal
+  23.0-25.9 FPS / 0.785-0.875 speed. The CPU-GPU thread repeatedly reached
+  99.8-99.9%, while lighter intervals recovered in the same process. A
+  weighted 30-second CPU profile attributed 17.8% of sampled CPU cycles to
+  the guest scheduler wait loop at `80348814`. The existing cycle-aware idle
+  seam reduced that loop to 1.7% in a confirmation profile. A DOL-only native
+  resolver bypass then removed about 5% of measured address-resolution cost.
+  A seven-minute serious-thermal run held approximately real-time speed, but
+  a later run still fell to 22.2-23.8 FPS / 0.759-0.773 speed when the game
+  thread reached 99.8%, then recovered. The module already uses ThinLTO and
+  strict `-O2`, so no missing release flag explains the remaining single-core
+  ceiling. Paired-single and quantized-memory helpers, MMU writes, generated
+  functions, vertex loading, and dispatch remain the recurring costs.
 - Dynamic native-versus-interpreter proportions in representative scenes. The
   counters currently appear only at graceful shutdown, which mobile tests do
   not reliably capture.
 - CPU time split among generated game code, interpreter fallback, vertex
   conversion, DSP/audio, graphics submission, and synchronization waits.
-- Whether 1x render scale materially helps each reported slowdown. A resolution
-  response must be measured per scene; it cannot be inferred globally.
-- Sustained behavior on iPhone 14 and the reported iPhone 15 Pro slowdown. The
-  requested external diagnostic log and reproduction details have not been
-  received.
+- Whether higher render scales materially worsen each reported slowdown. The
+  iPhone 14 reproduction proves that native 1x does not eliminate the issue,
+  but a matched per-scene scale matrix is still needed.
+- The reported iPhone 15 Pro slowdown. Its supplied Preview 1 logs predate
+  performance sampling and cannot identify the subsystem or Game Mode state.
 
 ## Important non-solutions
 
@@ -139,6 +159,16 @@ must be measured rather than dismissed.
 - Do not loosen strict floating-point behavior or enable broad fast-math without
   differential correctness evidence. Sunshine uses floating-point and
   paired-single math for gameplay as well as rendering.
+- Do not treat reduced fallback/dispatch counters as correctness evidence. An
+  August 13 cache-control fast path held full speed but visibly corrupted game
+  behavior and froze during screenshot handling; it was rejected and rolled
+  back to the original module and cache semantics.
+- Do not replace iOS hybrid ubershaders with synchronous specialized-shader
+  compilation as a blanket workaround for an initially incorrect shadow. An
+  August 13 physical-iPhone A/B made the shadow correct immediately but caused
+  black-screen and severe 1-8 FPS compilation stalls as new shaders arrived.
+  It was rejected and the asynchronous hybrid mode restored. Investigate Metal
+  ubershader equivalence or targeted pipeline warmup instead of blocking play.
 - Do not tune the audio queue first for a general frame slowdown. Audio can
   reveal lost real-time speed, but the known guest-timebase producer bug is
   already fixed and buffering changes can hide rather than remove CPU stalls.
@@ -238,8 +268,10 @@ Acceptance before calling the prototype technically improved:
 4. Optimize only proven hot helpers/blocks while preserving strict PowerPC
    floating-point behavior. Use desktop lockstep and device scene parity before
    accepting changes.
-5. Treat ARM64/iOS support for DolRecomp's optimized LLVM backend as a separate
-   upstream-sized project. Do not block nearer C-backend wins on it.
+5. Prototype ARM64/iOS LLVM only for measured hot regions. Basic target and
+   module-link feasibility is proven offline, but the full unoptimized module
+   is unusably large and LLVM's cross-chunk budget ABI is not directly
+   compatible with C chunks. Keep nearer C-backend wins independent.
 
 Acceptance:
 
@@ -273,6 +305,25 @@ change that improves that trace without breaking EFB-dependent effects.
 Run 30-minute scene-matched sessions on the physical iPad and supported iPhones.
 Correlate speed loss with thermal-state transitions and application CPU time.
 Preserve saves/settings through install, run, background/resume, and readback.
+
+The first CPU/video-split Build B showed why this gate cannot be replaced by a
+short FPS pass. It initially ran at essentially real-time speed at nominal
+thermals, then an attached 20.74-second profile captured the reported slowdown
+with Serious thermal state, approximately 93% CPU-thread utilization, and 36%
+Video-thread utilization. Explicit `userInitiated` QoS kept 97.6% of CPU-thread
+samples on performance cores, so the experiment improved immediate scheduling
+headroom but did not solve sustained work or power. Compare time-to-Serious as
+well as frame/speed distributions before accepting any split-thread mode.
+
+Subsequent confirmed gameplay rejects the split-thread route outright for
+Sunshine: Dolphin logged a FIFO Unknown Opcode caused by CPU/GPU desynchrony,
+after which Video-thread work collapsed even though displayed FPS/speed stayed
+plausible. A 90% emulated-clock, single-thread, `userInitiated` variant avoided
+that failure in two later confirmed-gameplay traces at Serious thermal state.
+Its combined CPU-GPU thread measured 77.1% and later 58.8%, versus 92.6% in the
+degraded QoS-only capture. Keep this underclock route experimental until
+hands-on timing/audio/physics and route coverage pass; never infer correctness
+from the FPS counter after a FIFO error.
 
 The historical nominal-thermal 60 FPS pass means thermal throttling is not the
 general explanation for that run. It remains plausible for phone reports after
