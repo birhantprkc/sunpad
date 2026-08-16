@@ -45,10 +45,10 @@ game module.
 | Rendering | Dolphin Metal backend reaches the title sequence and playable Delfino Plaza gameplay |
 | Game setup | Exact GMSE01 USA Rev 0 validation, staged private import, atomic activation, and real removal |
 | Touch | Move stick, C-stick, grouped D-pad editing, A/B/X/Y/Z, L, analog R, Start, and a persistent settings menu |
-| Controllers | Touch and iOS GameController on mobile; keyboard or connected controller on macOS; narrow A/B/X/Y/Z physical-button remapping is implemented in source and awaiting device acceptance |
+| Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
 | Settings | Live 1×–4× render scale, original 4:3 plus experimental widescreen/fill modes, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 3 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 4 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,11 +69,12 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.3-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.3/SunPad-0.1.0-preview.3-unsigned.ipa).
-Preview 3 includes the promoted analog-R/grouped-D-pad baseline, accepted iPad
-and iPhone defaults, controller remapping, loading and expanded performance
-diagnostics, Game Mode eligibility, and the corrected ISO/GCM import flow with
-a Files-visible SunPad folder. Its new **Experimental Performance Mode
+[`SunPad-0.1.0-preview.4-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.4/SunPad-0.1.0-preview.4-unsigned.ipa).
+Preview 4 adds an honest first-launch game-data screen with a direct
+**Choose ISO or GCM** action and hardens controller disconnect/reconnect,
+player-slot retention, stale-handle cleanup, held-input release, and foreground
+resume. It retains the accepted Preview 3 touch and performance baseline. The
+**Experimental Performance Mode
 (Restart Required)** is default-off and intended to collect comparable iPhone
 and iPad evidence; stable performance behavior remains the default.
 It must be re-signed with your Apple identity, including its nested
@@ -182,7 +183,10 @@ larger iPads:
 - **Customize:** Move mode lets controls be dragged and saves normalized
   positions per device class; Reset restores the default layout.
 - **Controller handoff:** a connected physical controller can hide the touch
-  overlay automatically.
+  overlay automatically. Current Apple GameController enumeration is
+  reconciled while active and after foreground resume; a valid controller keeps
+  its player slot, a returning sole controller reclaims player 1, and stale
+  player-1 input is released.
 
 The four D-pad directions always move, resize, and reset as one layout group;
 their gameplay hit regions remain four independent directions. R is a longer
@@ -197,8 +201,8 @@ The **Controller Button Mapping…** menu is likewise narrow: GameCube A/B/X/Y/Z
 can be assigned one-to-one across the four face buttons and right shoulder,
 with conflicts swapped and a default reset. Sticks, D-pad, Start, left
 shoulder, and analog triggers stay fixed so DualSense trigger pressure is not
-disturbed. Focused source mapping tests pass; physical-controller acceptance
-remains open.
+disturbed. Focused mapping and controller-slot tests pass; physical Bluetooth,
+wired, and natural-sleep reconnect acceptance remains open.
 
 Touch and GameController input merge through the same thread-safe GameCube
 state. Button presses are edge-latched, the strongest stick input wins, and
@@ -300,7 +304,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 3** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 4** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game

@@ -30,7 +30,11 @@ cmake --build "$BUILD" --target moderngekko-run moderngekko-launcher -j8
 
 ACTIVE_MODULE="$(cat "$TPL/build/modules-macos14/GMSE01/active-module.txt")"
 if [[ "$ACTIVE_MODULE" != /* ]]; then
-  ACTIVE_MODULE="$TPL/$ACTIVE_MODULE"
+  if [[ -e "$ROOT/$ACTIVE_MODULE" ]]; then
+    ACTIVE_MODULE="$ROOT/$ACTIVE_MODULE"
+  else
+    ACTIVE_MODULE="$TPL/$ACTIVE_MODULE"
+  fi
 fi
 if [[ ! -f "$ACTIVE_MODULE" ]]; then
   echo "Generated GMSE01 desktop module not found: $ACTIVE_MODULE" >&2

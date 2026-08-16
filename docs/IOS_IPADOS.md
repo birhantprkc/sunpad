@@ -65,7 +65,7 @@ The import flow is implemented; the original import/extract/boot path was
 verified on the Simulator, while the hardened reimport/removal path awaits a
 fresh acceptance run:
 
-1. **Choose a source** with either "Game Data & Saves > Change or Reimport" or
+1. **Choose a source** with either "Game Data & Saves > Import or Reimport" or
    by placing an ISO/GCM directly in **On My iPhone > SunPad** and choosing
    **Import from SunPad Folder**. The Files picker requests its own local copy
    so providers that cannot grant open-in-place access can still be used.
@@ -97,8 +97,12 @@ headlessly for verification.
   runtime on return. The iPad Simulator passed a background/foreground cycle on
   one process with continued 30 FPS/full-speed telemetry. Physical save
   readback and a real audio-interruption replay remain acceptance gates.
-- GameController polling merges into the same normalized input snapshot as
-  touch; touch controls auto-hide when a controller is connected. The persisted
+- The app frontend uses Apple's GameController framework. Current controllers
+  are enumerated and reconciled on notifications, periodically while active,
+  and after foreground resume. Valid instances retain their player slots,
+  stale instances are removed, a returning sole controller reclaims player 1,
+  and removal clears held player-1 buttons, sticks, and triggers. Touch controls
+  auto-hide when a controller is connected. The persisted
   **Modern C-stick L/R** setting reverses only the horizontal C-stick axis for
   both touch and physical controllers, leaving vertical zoom unchanged.
 - SunPad writes low-frequency boot, display, controller, lifecycle,
@@ -156,7 +160,8 @@ These are ordered implementation and acceptance boundaries for follow-up work
 after the public Preview 2 release. Large-iPad touch is accepted;
 the loading presentation has visual Simulator acceptance, while a runtime
 VoiceOver pass on physical hardware, compact-iPhone touch, and physical
-controller mapping remain open. The installed iOS 26.5 Simulator image does not
+controller mapping and physical Bluetooth, wired, and natural-sleep reconnect
+remain open. The installed iOS 26.5 Simulator image does not
 expose a VoiceOver setting:
 
 1. **Evidence intake first.** The reported iPhone 15 Pro slowdown is blocked on

@@ -97,8 +97,11 @@ Last updated: 2026-08-13
     implemented for GameCube A/B/X/Y/Z across the four face buttons and
     right shoulder. Conflicts swap one-to-one and reset restores defaults.
     Sticks, D-pad, Start, left shoulder, and analog triggers stay fixed. Source
-    regression tests pass; DualSense pressure, connect/disconnect handoff, and
-    Apple system-remapping interaction require physical acceptance.
+    regression tests pass. Controller slots now reconcile against Apple's
+    current-controller enumeration, clear held player-1 input when stale, and
+    reconcile after foreground resume. DualSense pressure, Bluetooth, wired,
+    natural-sleep reconnect, and Apple system-remapping interaction still
+    require hands-on physical acceptance.
 18. **60 FPS is test-only** — Sunshine's confirmed baseline is approximately
     30 FPS. A default-off **Experimental 60 FPS (Restart Required)** menu
     option now exposes the guarded GMSE01 boot path for hands-on testing; the

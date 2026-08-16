@@ -2,6 +2,7 @@
 
 #import "SunPadCoreHost.h"
 #import "SunPadControllerMapping.h"
+#import "SunPadControllerSlots.h"
 #import "SunPadDiagnostics.h"
 #import "SunPadDiscExtractor.h"
 #import "SunPadGameOverlay.h"
@@ -26,6 +27,24 @@
 static constexpr CGFloat SunPadDrawableScale = 1.0;
 static NSString *const SunPadSupportedImageSHA256 =
     @"67cec1634e641227a4cd51e6a0b277730cb9a1adaa867530c9e66de45373e51d";
+
+static uintptr_t SunPadControllerInstanceID(GCController *controller) {
+    return reinterpret_cast<uintptr_t>((__bridge void *)controller);
+}
+
+static NSString *SunPadControllerInstanceName(uintptr_t instance) {
+    return [NSString stringWithFormat:@"0x%llx", (unsigned long long)instance];
+}
+
+static GCControllerPlayerIndex SunPadPlayerIndexForSlot(NSInteger slot) {
+    switch (slot) {
+    case 0: return GCControllerPlayerIndex1;
+    case 1: return GCControllerPlayerIndex2;
+    case 2: return GCControllerPlayerIndex3;
+    case 3: return GCControllerPlayerIndex4;
+    default: return GCControllerPlayerIndexUnset;
+    }
+}
 
 static NSString *SunPadThermalStateName(NSProcessInfoThermalState state) {
     switch (state) {
@@ -209,10 +228,17 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 @end
 
 @interface SunPadGameViewController () <SunPadGameOverlayDelegate, UIDocumentPickerDelegate>
+- (void)configureController:(GCController *)controller playerSlot:(NSInteger)slot;
+- (nullable GCController *)controllerForPlayerSlot:(NSInteger)slot;
 - (NSArray<NSURL *> *)gameImagesInDocumentsDirectory;
 - (NSString *)modulePathFromConfiguration:(NSDictionary *)configuration;
+- (void)presentGameDataImport;
 - (void)presentGameDataFolderImport;
+- (void)publishInputFromController:(GCController *)controller
+                           gamepad:(GCExtendedGamepad *)gamepad;
+- (void)reconcileControllersForReason:(NSString *)reason;
 - (NSString *)resolvedImportTestPath:(NSString *)requestedPath;
+- (void)showGameDataSetupState;
 - (NSString *)sunPadSupportRoot;
 @end
 
@@ -224,6 +250,9 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     UILabel *_fpsLabel;
     UILabel *_bootStatusLabel;
     UIActivityIndicatorView *_bootActivityIndicator;
+    UIButton *_gameDataImportButton;
+    SunPadControllerSlots _controllerSlots;
+    NSMutableDictionary<NSNumber *, GCController *> *_configuredControllers;
     CGSize _lastLoggedDrawableSize;
     NSUInteger _performanceLogSeconds;
     double _lastPerformanceCPUSeconds;
@@ -280,6 +309,25 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     _bootStatusLabel.text = @"Preparing runtime…";
     _bootStatusLabel.accessibilityLabel = @"Preparing runtime";
     [self.view addSubview:_bootStatusLabel];
+
+    _gameDataImportButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    UIButtonConfiguration *importConfiguration =
+        [UIButtonConfiguration filledButtonConfiguration];
+    importConfiguration.title = @"Choose ISO or GCM";
+    importConfiguration.cornerStyle = UIButtonConfigurationCornerStyleMedium;
+    importConfiguration.baseBackgroundColor = UIColor.systemBlueColor;
+    importConfiguration.baseForegroundColor = UIColor.whiteColor;
+    importConfiguration.contentInsets = NSDirectionalEdgeInsetsMake(14.0, 24.0, 14.0, 24.0);
+    _gameDataImportButton.configuration = importConfiguration;
+    _gameDataImportButton.accessibilityHint =
+        @"Opens Files to select supported Super Mario Sunshine game data.";
+    [_gameDataImportButton addTarget:self
+                              action:@selector(presentGameDataImport)
+                    forControlEvents:UIControlEventTouchUpInside];
+    _gameDataImportButton.hidden = YES;
+    [self.view addSubview:_gameDataImportButton];
+
+    _configuredControllers = [NSMutableDictionary dictionary];
 
     _fpsLabel = [UILabel new];
     _fpsLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.85];
@@ -391,6 +439,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 }
 
 - (void)updateFPSLabel {
+    [self reconcileControllersForReason:@"periodic"];
     double fps = [_coreHost currentFPS];
     if (fps > 0.0) {
         _bootStatusLabel.hidden = YES;
@@ -455,63 +504,159 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
                                              selector:@selector(controllerDidDisconnect:)
                                                  name:GCControllerDidDisconnectNotification
                                                object:nil];
-    for (GCController *controller in GCController.controllers)
-        [self configureController:controller];
+    [self reconcileControllersForReason:@"launch"];
 }
 
 - (void)controllerDidConnect:(NSNotification *)notification {
     GCController *controller = notification.object;
-    SunPadLog(@"controller connected vendor=%@ category=%@ extended=%d count=%lu",
+    uintptr_t instance = SunPadControllerInstanceID(controller);
+    SunPadLog(@"controller connected instance=%@ vendor=%@ category=%@ extended=%d count=%lu",
+              SunPadControllerInstanceName(instance),
               controller.vendorName ?: @"unknown", controller.productCategory ?: @"unknown",
               controller.extendedGamepad != nil, (unsigned long)GCController.controllers.count);
-    [self configureController:notification.object];
+    [self reconcileControllersForReason:@"connect"];
 }
 
 - (void)controllerDidDisconnect:(NSNotification *)notification {
     GCController *controller = notification.object;
-    SunPadLog(@"controller disconnected vendor=%@ count=%lu",
+    uintptr_t instance = SunPadControllerInstanceID(controller);
+    NSInteger slot = _controllerSlots.SlotFor(instance);
+    SunPadLog(@"controller disconnected instance=%@ slot=%ld vendor=%@ count=%lu",
+              SunPadControllerInstanceName(instance), (long)(slot >= 0 ? slot + 1 : 0),
               controller.vendorName ?: @"unknown", (unsigned long)GCController.controllers.count);
-    [[SunPadInputMixer sharedMixer] clearInputFromTouch:NO];
+    [self reconcileControllersForReason:@"disconnect"];
 }
 
 /* BellPad's GameCube mapping: analog triggers carry L/R pressure (FLUDD),
  * the right shoulder is Z, menu is Start, and the D-pad maps to D-pad bits. */
-- (void)configureController:(GCController *)controller {
+- (void)configureController:(GCController *)controller playerSlot:(NSInteger)slot {
     GCExtendedGamepad *gamepad = controller.extendedGamepad;
     if (gamepad == nil) {
-        SunPadLog(@"controller ignored vendor=%@ reason=no extended gamepad profile",
+        SunPadLog(@"controller ignored instance=%@ vendor=%@ reason=no extended gamepad profile",
+                  SunPadControllerInstanceName(SunPadControllerInstanceID(controller)),
                   controller.vendorName ?: @"unknown");
         return;
     }
-    SunPadLog(@"controller configured vendor=%@ category=%@",
-              controller.vendorName ?: @"unknown", controller.productCategory ?: @"unknown");
+    SunPadLog(@"controller configured instance=%@ slot=%ld vendor=%@ category=%@",
+              SunPadControllerInstanceName(SunPadControllerInstanceID(controller)),
+              (long)(slot + 1), controller.vendorName ?: @"unknown",
+              controller.productCategory ?: @"unknown");
     __weak SunPadGameViewController *weakSelf = self;
+    __weak GCController *weakController = controller;
     gamepad.valueChangedHandler = ^(GCExtendedGamepad *pad, GCControllerElement *element) {
         (void)element;
-        (void)weakSelf;
-        // Every callback is a complete snapshot. Leaving buttons uninitialized
-        // made random button edges overflow the old fixed-size pipe buffer.
-        SunPadInputState state = {};
-        state.connected = 1;
-        state.buttons |= SunPadApplyControllerButtonMapping(
-            [SunPadControllerMappingStore mapping], SunPadPressedFaceButtons(pad));
-        if (pad.leftShoulder.isPressed) state.buttons |= SunPadButtonL;
-        if (pad.buttonMenu.isPressed) state.buttons |= SunPadButtonStart;
-        if (pad.dpad.up.isPressed) state.buttons |= SunPadButtonDpadUp;
-        if (pad.dpad.down.isPressed) state.buttons |= SunPadButtonDpadDown;
-        if (pad.dpad.left.isPressed) state.buttons |= SunPadButtonDpadLeft;
-        if (pad.dpad.right.isPressed) state.buttons |= SunPadButtonDpadRight;
-        state.stickX = (int8_t)std::lround(pad.leftThumbstick.xAxis.value * 127.0f);
-        state.stickY = (int8_t)std::lround(pad.leftThumbstick.yAxis.value * 127.0f);
-        state.cStickX = (int8_t)std::lround(pad.rightThumbstick.xAxis.value * 127.0f);
-        state.cStickY = (int8_t)std::lround(pad.rightThumbstick.yAxis.value * 127.0f);
-        state.triggerL = (uint8_t)std::lround(pad.leftTrigger.value * 255.0f);
-        state.triggerR = (uint8_t)std::lround(pad.rightTrigger.value * 255.0f);
-        if (state.triggerL > 30) state.buttons |= SunPadButtonL;
-        if (state.triggerR > 30) state.buttons |= SunPadButtonR;
-        [[SunPadInputMixer sharedMixer] setInputState:state fromTouch:NO];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SunPadGameViewController *strongSelf = weakSelf;
+            GCController *strongController = weakController;
+            if (strongSelf != nil && strongController != nil)
+                [strongSelf publishInputFromController:strongController gamepad:pad];
+        });
     };
-    gamepad.valueChangedHandler(gamepad, gamepad.buttonA);
+    [self publishInputFromController:controller gamepad:gamepad];
+}
+
+- (void)publishInputFromController:(GCController *)controller
+                           gamepad:(GCExtendedGamepad *)gamepad {
+    NSArray<GCController *> *currentControllers = GCController.controllers;
+    if ([currentControllers indexOfObjectIdenticalTo:controller] == NSNotFound) {
+        uintptr_t instance = SunPadControllerInstanceID(controller);
+        SunPadLog(@"controller stale callback instance=%@ slot=%ld action=reconcile",
+                  SunPadControllerInstanceName(instance),
+                  (long)(_controllerSlots.SlotFor(instance) + 1));
+        [self reconcileControllersForReason:@"stale-callback"];
+        return;
+    }
+
+    uintptr_t instance = SunPadControllerInstanceID(controller);
+    if (_controllerSlots.SlotFor(instance) != 0)
+        return;
+
+    // Every callback is a complete snapshot. Leaving buttons uninitialized
+    // made random button edges overflow the old fixed-size pipe buffer.
+    SunPadInputState state = {};
+    state.connected = 1;
+    state.buttons |= SunPadApplyControllerButtonMapping(
+        [SunPadControllerMappingStore mapping], SunPadPressedFaceButtons(gamepad));
+    if (gamepad.leftShoulder.isPressed) state.buttons |= SunPadButtonL;
+    if (gamepad.buttonMenu.isPressed) state.buttons |= SunPadButtonStart;
+    if (gamepad.dpad.up.isPressed) state.buttons |= SunPadButtonDpadUp;
+    if (gamepad.dpad.down.isPressed) state.buttons |= SunPadButtonDpadDown;
+    if (gamepad.dpad.left.isPressed) state.buttons |= SunPadButtonDpadLeft;
+    if (gamepad.dpad.right.isPressed) state.buttons |= SunPadButtonDpadRight;
+    state.stickX = (int8_t)std::lround(gamepad.leftThumbstick.xAxis.value * 127.0f);
+    state.stickY = (int8_t)std::lround(gamepad.leftThumbstick.yAxis.value * 127.0f);
+    state.cStickX = (int8_t)std::lround(gamepad.rightThumbstick.xAxis.value * 127.0f);
+    state.cStickY = (int8_t)std::lround(gamepad.rightThumbstick.yAxis.value * 127.0f);
+    state.triggerL = (uint8_t)std::lround(gamepad.leftTrigger.value * 255.0f);
+    state.triggerR = (uint8_t)std::lround(gamepad.rightTrigger.value * 255.0f);
+    if (state.triggerL > 30) state.buttons |= SunPadButtonL;
+    if (state.triggerR > 30) state.buttons |= SunPadButtonR;
+    [[SunPadInputMixer sharedMixer] setInputState:state fromTouch:NO];
+}
+
+- (void)reconcileControllersForReason:(NSString *)reason {
+    NSArray<GCController *> *currentControllers = GCController.controllers;
+    std::vector<uintptr_t> currentInstances;
+    for (GCController *controller in currentControllers) {
+        if (controller.extendedGamepad != nil)
+            currentInstances.push_back(SunPadControllerInstanceID(controller));
+    }
+
+    SunPadControllerReconcileResult result = _controllerSlots.Reconcile(currentInstances);
+    for (const SunPadControllerSlotChange &change : result.removed) {
+        NSNumber *key = @(change.instance);
+        GCController *staleController = _configuredControllers[key];
+        staleController.extendedGamepad.valueChangedHandler = nil;
+        staleController.playerIndex = GCControllerPlayerIndexUnset;
+        [_configuredControllers removeObjectForKey:key];
+        if (change.slot == 0)
+            [[SunPadInputMixer sharedMixer] clearInputFromTouch:NO];
+        SunPadLog(@"controller reconciled reason=%@ instance=%@ slot=%ld status=%@",
+                  reason, SunPadControllerInstanceName(change.instance),
+                  (long)(change.slot + 1), @"removed");
+    }
+
+    if (!result.removed.empty() || !result.assigned.empty())
+        [_overlay refreshControllerVisibility];
+
+    BOOL logRetained = ![reason isEqualToString:@"periodic"];
+    for (GCController *controller in currentControllers) {
+        if (controller.extendedGamepad == nil)
+            continue;
+        uintptr_t instance = SunPadControllerInstanceID(controller);
+        NSInteger slot = _controllerSlots.SlotFor(instance);
+        if (slot < 0) {
+            if (logRetained) {
+                SunPadLog(@"controller reconciled reason=%@ instance=%@ slot=0 status=%@",
+                          reason, SunPadControllerInstanceName(instance), @"no-free-slot");
+            }
+            continue;
+        }
+
+        NSNumber *key = @(instance);
+        BOOL newlyConfigured = _configuredControllers[key] != controller;
+        controller.playerIndex = SunPadPlayerIndexForSlot(slot);
+        if (newlyConfigured) {
+            _configuredControllers[key] = controller;
+            [self configureController:controller playerSlot:slot];
+        }
+        if (newlyConfigured || logRetained) {
+            SunPadLog(@"controller reconciled reason=%@ instance=%@ slot=%ld status=%@",
+                      reason, SunPadControllerInstanceName(instance), (long)(slot + 1),
+                      newlyConfigured ? @"assigned" : @"retained");
+        }
+    }
+
+    GCController *playerOne = [self controllerForPlayerSlot:0];
+    if (playerOne != nil)
+        [self publishInputFromController:playerOne gamepad:playerOne.extendedGamepad];
+}
+
+- (nullable GCController *)controllerForPlayerSlot:(NSInteger)slot {
+    if (slot < 0 || slot >= (NSInteger)SunPadControllerSlots::kMaxPlayers)
+        return nil;
+    uintptr_t instance = _controllerSlots.InstanceAt((std::size_t)slot);
+    return instance == 0 ? nil : _configuredControllers[@(instance)];
 }
 
 - (void)settingsChanged:(NSNotification *)notification {
@@ -538,9 +683,19 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     CGFloat statusWidth = MIN(420.0, CGRectGetWidth(safe) - 32.0);
     _bootActivityIndicator.center = CGPointMake(CGRectGetMidX(safe),
                                                 CGRectGetMidY(safe) - 34.0);
-    _bootStatusLabel.frame = CGRectMake(CGRectGetMidX(safe) - statusWidth / 2.0,
-                                        CGRectGetMidY(safe) - 4.0,
-                                        statusWidth, 80.0);
+    if (_gameDataImportButton.hidden) {
+        _bootStatusLabel.frame = CGRectMake(CGRectGetMidX(safe) - statusWidth / 2.0,
+                                            CGRectGetMidY(safe) - 4.0,
+                                            statusWidth, 80.0);
+    } else {
+        _bootStatusLabel.frame = CGRectMake(CGRectGetMidX(safe) - statusWidth / 2.0,
+                                            CGRectGetMidY(safe) - 104.0,
+                                            statusWidth, 132.0);
+    }
+    CGFloat importWidth = MIN(240.0, CGRectGetWidth(safe) - 64.0);
+    _gameDataImportButton.frame = CGRectMake(CGRectGetMidX(safe) - importWidth / 2.0,
+                                             CGRectGetMidY(safe) + 44.0,
+                                             importWidth, 50.0);
     _fpsLabel.frame = CGRectMake(CGRectGetMinX(safe) + 8.0,
                                  CGRectGetMinY(safe) + 8.0,
                                  140.0, 22.0);
@@ -558,6 +713,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 - (void)startGameIfProvisioned {
     if (_coreHost != nil)
         return;
+    _gameDataImportButton.hidden = YES;
     _bootStatusLabel.hidden = NO;
     _bootStatusLabel.text = @"Preparing runtime…";
     _bootStatusLabel.accessibilityLabel = @"Preparing runtime";
@@ -624,8 +780,11 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     BOOL currentRootExists = [fileManager fileExistsAtPath:currentContainerRoot];
     NSString *gameRoot = currentContainerRoot;
 #if TARGET_OS_SIMULATOR
-    if (!currentRootExists)
-        gameRoot = config[@"DevGameRoot"];
+    if (!currentRootExists) {
+        NSString *developmentRoot = config[@"DevGameRoot"];
+        if (developmentRoot.length > 0)
+            gameRoot = developmentRoot;
+    }
 #else
     // A side-by-side diagnostic build can be made self-contained when the
     // CoreDevice data-container transfer service is unavailable. Production
@@ -645,6 +804,19 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     SunPadLog(@"boot data support=%@ root=%@ rootExists=%d persistedRoot=%@",
               supportRoot, gameRoot, currentRootExists,
               settings.extractedGameRoot ?: @"none");
+
+    BOOL gameRootIsDirectory = NO;
+    BOOL gameRootExists =
+        [fileManager fileExistsAtPath:gameRoot isDirectory:&gameRootIsDirectory];
+    BOOL gameRootReadable = gameRootExists && gameRootIsDirectory &&
+                            [fileManager isReadableFileAtPath:gameRoot];
+    if (!gameRootReadable) {
+        SunPadLog(@"boot waiting for game data rootExists=%d directory=%d readable=%d",
+                  gameRootExists, gameRootIsDirectory,
+                  gameRootExists && [fileManager isReadableFileAtPath:gameRoot]);
+        [self showGameDataSetupState];
+        return;
+    }
 
     NSString *modulePath = [self modulePathFromConfiguration:config];
     if (gameRoot.length == 0 || modulePath.length == 0) {
@@ -721,6 +893,35 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     }];
 }
 
+- (void)showGameDataSetupState {
+    [_bootActivityIndicator stopAnimating];
+    _bootStatusLabel.hidden = NO;
+
+    NSMutableParagraphStyle *paragraph = [NSMutableParagraphStyle new];
+    paragraph.alignment = NSTextAlignmentCenter;
+    paragraph.paragraphSpacing = 8.0;
+    NSDictionary *titleAttributes = @{
+        NSFontAttributeName: [UIFont systemFontOfSize:24.0 weight:UIFontWeightBold],
+        NSForegroundColorAttributeName: UIColor.whiteColor,
+        NSParagraphStyleAttributeName: paragraph,
+    };
+    NSDictionary *bodyAttributes = @{
+        NSFontAttributeName: [UIFont systemFontOfSize:16.0 weight:UIFontWeightRegular],
+        NSForegroundColorAttributeName: [UIColor colorWithWhite:1.0 alpha:0.82],
+        NSParagraphStyleAttributeName: paragraph,
+    };
+    NSMutableAttributedString *message = [[NSMutableAttributedString alloc]
+        initWithString:@"Game data required\n" attributes:titleAttributes];
+    [message appendAttributedString:[[NSAttributedString alloc]
+        initWithString:@"SunPad does not include game files. Choose your own legally obtained Super Mario Sunshine USA disc image (GMSE01, revision 0) to continue."
+             attributes:bodyAttributes]];
+    _bootStatusLabel.attributedText = message;
+    _bootStatusLabel.accessibilityLabel =
+        @"Game data required. SunPad does not include game files. Choose your own legally obtained Super Mario Sunshine USA disc image, GMSE01 revision zero, to continue.";
+    _gameDataImportButton.hidden = NO;
+    [self.view setNeedsLayout];
+}
+
 - (void)presentBootError:(NSString *)message {
     _bootStatusLabel.text = @"SunPad could not start.";
     _bootStatusLabel.accessibilityLabel = _bootStatusLabel.text;
@@ -757,6 +958,8 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 }
 
 - (void)resumeRuntimeForApplicationLifecycle {
+    [self reconcileControllersForReason:@"foreground"];
+    [_overlay refreshControllerVisibility];
     [_coreHost resumeRuntimeAfterSystemEvent];
 }
 
@@ -796,8 +999,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     settings.retainedGameDataPath = nil;
     settings.extractedGameRoot = nil;
     [settings synchronize];
-    _bootStatusLabel.hidden = NO;
-    _bootStatusLabel.text = @"Stored game data removed.\nUse the ••• menu to import it again.";
+    [self showGameDataSetupState];
     SunPadLog(@"stored game data removed");
 }
 
@@ -807,6 +1009,9 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 }
 
 - (GCController *)firstExtendedController {
+    GCController *playerOne = [self controllerForPlayerSlot:0];
+    if (playerOne != nil)
+        return playerOne;
     for (GCController *controller in GCController.controllers) {
         if (controller.extendedGamepad != nil)
             return controller;

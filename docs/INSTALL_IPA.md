@@ -1,27 +1,28 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 3 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 4 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 3 includes the promoted analog R and grouped D-pad controls, accepted
-iPad and iPhone defaults, controller remapping, loading and expanded
-performance diagnostics, Game Mode eligibility, and the corrected ISO/GCM
-import flow. The default-off **Experimental Performance Mode (Restart
+Preview 4 adds a clear first-launch game-data explanation and direct **Choose
+ISO or GCM** action. It also hardens controller disconnect/reconnect, player
+slots, stale-handle cleanup, held-input release, and foreground resume. The
+default-off **Experimental Performance Mode (Restart
 Required)** can improve performance on some devices but may affect game timing,
 audio, or physics. Stable mode remains the default; reproduce any problem and
 share the diagnostic log from the three-dot menu.
 
 1. Download
-   [`SunPad-0.1.0-preview.3-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.3/SunPad-0.1.0-preview.3-unsigned.ipa)
-   from the [Preview 3 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.3).
+   [`SunPad-0.1.0-preview.4-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.4/SunPad-0.1.0-preview.4-unsigned.ipa)
+   from the [Preview 4 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.4).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.
-4. Install it, open **••• → Game Data & Saves → Change or Reimport**, and
-   select your own legally obtained `GMSE01` USA revision 0 ISO/GCM image.
+4. Install and open it. On first launch, choose **Choose ISO or GCM** and select
+   your own legally obtained `GMSE01` USA revision 0 ISO/GCM image. To replace
+   it later, use **••• → Game Data & Saves → Import or Reimport Game Data**.
 
 If selecting the image through a Files provider does not work, put it directly
-in **Files → On My iPhone → SunPad**, then choose **••• → Game Data & Saves
+in **Files → On My iPhone/iPad → SunPad**, then choose **••• → Game Data & Saves
 → Import from SunPad Folder**. SunPad keeps the dropped file in Documents and
 imports a validated private copy, so remove the dropped file yourself only
 after the game has launched successfully if you want to reclaim that space.

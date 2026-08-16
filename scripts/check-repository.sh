@@ -20,9 +20,11 @@ plutil -lint apple/ios/Info.plist apple/macos/Info.plist
 
 ./tests/test-input-pipe-encoder.sh
 ./tests/test-controller-mapping.sh
+./tests/test-controller-slots.sh
 ./tests/test-experimental-60fps-config.sh
 ./tests/test-experimental-performance-config.sh
 ./tests/test-diagnostics.sh
+./tests/test-game-data-setup.sh
 
 test -x scripts/package-ios.sh
 test -x scripts/audit-ios-package.sh
