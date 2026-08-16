@@ -43,7 +43,11 @@ ACTIVE_FILE="$TPL/build/modules-macos14/GMSE01/active-module.txt"
 if [[ -f "$ACTIVE_FILE" ]]; then
   ACTIVE_MODULE="$(<"$ACTIVE_FILE")"
   if [[ "$ACTIVE_MODULE" != /* ]]; then
-    ACTIVE_MODULE="$TPL/$ACTIVE_MODULE"
+    if [[ -e "$ROOT/$ACTIVE_MODULE" ]]; then
+      ACTIVE_MODULE="$ROOT/$ACTIVE_MODULE"
+    else
+      ACTIVE_MODULE="$TPL/$ACTIVE_MODULE"
+    fi
   fi
   GEN="$(dirname "$ACTIVE_MODULE")/dolrecomp-output/generated"
 else

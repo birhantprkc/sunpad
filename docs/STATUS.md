@@ -76,21 +76,26 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 11. **BellPad-style input merging**: touch + GameController through one
     thread-safe normalized GameCube state (ORed buttons with edge latching,
     strongest-wins sticks, max analog triggers / FLUDD pressure).
-12. **Game-engine audio root cause fixed (2026-08-08)**: the static-recomp
+12. **Controller reconciliation**: the iOS frontend uses Apple's
+    GameController framework and enumerates current controllers on connection
+    changes, periodically while active, and after foreground resume. Stable
+    instance-to-player slots are preserved; stale instances release player-1
+    input; deterministic missed-removal and two-controller tests pass.
+13. **Game-engine audio root cause fixed (2026-08-08)**: the static-recomp
     core's guest timebase ran 12× fast inside native bursts and snapped
     backwards at burst boundaries, tripping JAudio's tick-delta voice
     limiter. With the fix, producer-side DSP dumps are continuous on desktop
     parity runs and in the iOS Simulator app (92.8% audible over 139 s).
     Physical-iPad re-acceptance is pending. See `docs/AUDIO_ISSUE.md`.
-13. **Runtime diagnostics**: the overlay shows live FPS (30.0 on the iPhone
+14. **Runtime diagnostics**: the overlay shows live FPS (30.0 on the iPhone
     17 Pro Simulator at 640x528 EFB) and the current EFB resolution. Persistent
     logs redact current app-container and temporary-directory prefixes, and
     sharing requires a metadata disclosure confirmation before the share sheet.
-14. **Developer-preview packaging**: the Release app and required GMSE01
+15. **Developer-preview packaging**: the Release app and required GMSE01
     recompiled module package as a deterministic unsigned IPA. The audit checks
     iPhoneOS/arm64 identity and rejects disc images, extracted game data, saves,
     personal build paths, credentials, and signing material.
-15. **Startup feedback**: mobile launch presents an activity indicator with
+16. **Startup feedback**: mobile launch presents an activity indicator with
     honest Preparing runtime, Starting game, and Waiting for first frame
     phases. It uses no synthetic progress percentage and disappears only after
     the first measured game frame. Visual iPad-Simulator acceptance passed for
@@ -145,7 +150,9 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 - Physical-controller button remapping is implemented in source for A/B/X/Y/Z
   only, with one-to-one swaps, persistence, and reset. Sticks, D-pad, Start,
   left shoulder, and analog triggers remain fixed. Physical DualSense
-  acceptance remains open.
+  acceptance remains open. Automated controller-slot, missed-removal,
+  disconnect-release, and foreground-reconciliation coverage passes; physical
+  Bluetooth, wired, and natural-sleep reconnect acceptance remains open.
 - A default-off **Experimental 60 FPS (Restart Required)** menu option now
   exposes the guarded GMSE01 boot path for hands-on testing; the existing
   `-sunpadExperimental60FPS` launch argument remains available for controlled

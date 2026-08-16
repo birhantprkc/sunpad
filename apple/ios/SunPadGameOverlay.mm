@@ -429,7 +429,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     ]];
 
     UIMenu *dataMenu = [UIMenu menuWithTitle:@"Game Data & Saves" children:@[
-        [UIAction actionWithTitle:@"Change or Reimport Game Data"
+        [UIAction actionWithTitle:@"Import or Reimport Game Data"
                             image:[UIImage systemImageNamed:@"arrow.triangle.2.circlepath"]
                        identifier:nil handler:^(__kindof UIAction *action) {
             (void)action;
@@ -1630,6 +1630,10 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     [self setTouchControlsHidden:shouldHide animated:YES];
     if (controllerConnected)
         [self clearTouchInput];
+}
+
+- (void)refreshControllerVisibility {
+    [self applyControllerVisibility];
 }
 
 - (void)observeControllerConnection {

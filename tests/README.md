@@ -20,9 +20,11 @@ Focused source regression gates:
 ```sh
 ./tests/test-input-pipe-encoder.sh
 ./tests/test-controller-mapping.sh
+./tests/test-controller-slots.sh
 ./tests/test-experimental-60fps-config.sh
 ./tests/test-diagnostics.sh
 ./tests/test-iphone-touch-layout-defaults.sh
+./tests/test-game-data-setup.sh
 ```
 
 Before publishing or merging release-hardening work, run the combined

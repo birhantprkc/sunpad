@@ -34,6 +34,9 @@ NS_ASSUME_NONNULL_BEGIN
 /* Hide the touch controls (e.g., a physical controller is connected). */
 - (void)setTouchControlsHidden:(BOOL)hidden animated:(BOOL)animated;
 
+/* Re-evaluates the current GameController enumeration after foreground resume. */
+- (void)refreshControllerVisibility;
+
 /* Applies persisted settings to the touch controls. */
 - (void)applySettings;
 
