@@ -11,7 +11,7 @@ typedef NS_OPTIONS(uint8_t, SunPadPhysicalControllerButton) {
     SunPadPhysicalControllerButtonB = 1 << 1,
     SunPadPhysicalControllerButtonX = 1 << 2,
     SunPadPhysicalControllerButtonY = 1 << 3,
-    SunPadPhysicalControllerButtonRightShoulder = 1 << 4,
+    SunPadPhysicalControllerButtonLeftShoulder = 1 << 4,
 };
 
 typedef struct {
@@ -34,9 +34,11 @@ FOUNDATION_EXPORT SunPadControllerButtonMapping SunPadControllerButtonMappingByA
     uint16_t gameButton);
 FOUNDATION_EXPORT NSString *SunPadPhysicalControllerButtonName(
     SunPadPhysicalControllerButton button);
+FOUNDATION_EXPORT uint8_t SunPadControllerRightTriggerPressure(
+    uint8_t triggerPressure, BOOL rightShoulderPressed);
 
 /* Versioned, app-local persistence for the deliberately narrow A/B/X/Y/Z
- * remapping layer. Sticks, D-pad, Menu, left shoulder, and analog triggers
+ * remapping layer. Sticks, D-pad, Menu, right shoulder, and analog triggers
  * remain outside this store and keep their established direct mappings. */
 @interface SunPadControllerMappingStore : NSObject
 

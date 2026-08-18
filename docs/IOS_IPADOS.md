@@ -106,17 +106,22 @@ headlessly for verification.
   **Modern C-stick L/R** setting reverses only the horizontal C-stick axis for
   both touch and physical controllers, leaving vertical zoom unchanged.
 - SunPad writes low-frequency boot, display, controller, lifecycle,
-  memory-warning, input-pipe, and runtime-exit breadcrumbs to both the unified
-  device log and `Library/Application Support/SunPad/Logs/runtime.log`. The
-  persistent log rotates at 1 MB and survives relaunches. Current app-container
-  and temporary-directory prefixes are redacted from newly written log
-  messages. A log can still contain OS/app versions, screen and controller
-  details, a game-image filename, and runtime errors. A normal user can choose
-  **Share Diagnostic Log…** from SunPad's three-dot menu; SunPad presents this
-  metadata disclosure and requires confirmation before snapshotting the raw log
-  and opening the standard iOS share sheet. The snapshot does not contain the
-  image, extracted files, or saves. Developers can also retrieve the persistent
-  log without stopping the game:
+  memory-warning, input-pipe, runtime-warning/error, screenshot-marker, and
+  runtime-exit breadcrumbs to both the unified device log and
+  `Library/Application Support/SunPad/Logs/runtime.log`. Each launch retains the
+  immediately preceding session separately. Current app-container and
+  temporary-directory prefixes are redacted from newly written messages.
+  Identical runtime warnings/errors are counted and rate-limited rather than
+  written every frame. A report can still contain OS/app versions, screen and
+  controller details, a game-image filename, and runtime errors. A normal user
+  can choose **Report a Problem…** from SunPad's three-dot menu, answer three
+  short questions, then share one report or open a pre-filled GitHub issue.
+  `Documents/Diagnostics/Latest-SunPad-Diagnostic.log` contains those answers,
+  a bounded technical/graphics snapshot, warning/error summary, and the current
+  and preceding sessions. It is visible in Files for attachment alongside a
+  screenshot. The report does not contain the image, extracted files, saves,
+  signing material, or controller inputs. Developers can also retrieve the
+  persistent logs without stopping the game:
 
   ```sh
   xcrun devicectl device copy from --device <device-id> \
@@ -175,10 +180,12 @@ expose a VoiceOver setting:
    large-iPad default; compact-iPhone defaults remain unchanged pending their
    own play pass.
 4. **Physical-controller mapping.** Limit v1 to GameCube A/B/X/Y/Z mapped
-   one-to-one across the four face buttons and right shoulder. Preserve sticks,
-   D-pad, Start, left shoulder, analog L/R pressure, touch/controller merging,
-   and controller handoff. Reset and corrupt persistence must return to the
-   current default mapping.
+   one-to-one across the four face buttons and left shoulder. The default left
+   shoulder is Z; the fixed right shoulder supplies 50% analog R without the
+   digital R click for run-and-spray; the right trigger retains the strong/full
+   path. Preserve sticks, D-pad, Start, analog L/R pressure,
+   touch/controller merging, and controller handoff. Reset and corrupt
+   persistence must return to the current default mapping.
 5. **Performance-mode testing.** Keep the synchronized single CPU-GPU thread;
    the dual-core experiment is rejected because confirmed gameplay produced a
    FIFO Unknown Opcode from CPU/GPU desynchronization. The default-off 90%

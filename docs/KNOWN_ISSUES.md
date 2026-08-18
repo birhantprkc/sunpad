@@ -95,13 +95,15 @@ Last updated: 2026-08-18
     device filename when a Simulator-generated development plist is present.
 17. **Physical controller remapping is intentionally narrow** — remapping is
     implemented for GameCube A/B/X/Y/Z across the four face buttons and
-    right shoulder. Conflicts swap one-to-one and reset restores defaults.
-    Sticks, D-pad, Start, left shoulder, and analog triggers stay fixed. Source
-    regression tests pass. Controller slots now reconcile against Apple's
-    current-controller enumeration, clear held player-1 input when stale, and
-    reconcile after foreground resume. DualSense pressure, Bluetooth, wired,
-    natural-sleep reconnect, and Apple system-remapping interaction still
-    require hands-on physical acceptance.
+    left shoulder. Conflicts swap one-to-one and reset restores defaults. The
+    default left shoulder is Z; the fixed right shoulder supplies 50% analog R
+    without a digital R click for run-and-spray; the right trigger retains the
+    strong/full path. Sticks, D-pad, Start, and analog triggers stay fixed.
+    Source regression tests pass. Controller slots now reconcile against
+    Apple's current-controller enumeration, clear held player-1 input when
+    stale, and reconcile after foreground resume. The revised shoulder mapping,
+    DualSense pressure, Bluetooth, wired, natural-sleep reconnect, and Apple
+    system-remapping interaction still require hands-on physical acceptance.
 18. **60 FPS is test-only** — Sunshine's confirmed baseline is approximately
     30 FPS. A default-off **Experimental 60 FPS (Restart Required)** menu
     option now exposes the guarded GMSE01 boot path for hands-on testing; the

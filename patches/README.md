@@ -5,8 +5,8 @@ its ignored upstream trees:
 
 | Patch | Applies to | Contents |
 |---|---|---|
-| `ModernGekko/0001-sunpad-apple-runtime.patch` | Pinned ModernGekko root | Apple frontend/runtime integration, macOS Metal defaults, iOS platform and build wiring, and the SunPad-owned files required by the Apple workflows |
-| `ModernGekko-dolphin/0001-sunpad-ios-runtime.patch` | Pinned `ModernGekko/vendor/dolphin` | Complete Dolphin-derived Apple/runtime delta, including Metal/platform guards and stubs, iOS no-JIT/software-loader behavior, audio integration, StaticRecomp timebase/TL/TU fixes, and the macOS ARM64 fallback contract |
+| `ModernGekko/0001-sunpad-apple-runtime.patch` | Pinned ModernGekko root | Apple frontend/runtime integration, macOS Metal defaults, iOS platform and build wiring, bounded warning/error forwarding, graphics diagnostic snapshots, and the SunPad-owned files required by the Apple workflows |
+| `ModernGekko-dolphin/0001-sunpad-ios-runtime.patch` | Pinned `ModernGekko/vendor/dolphin` | Complete Dolphin-derived Apple/runtime delta, including Metal/platform guards and stubs, iOS no-JIT/software-loader behavior, audio integration, embedder warning/error forwarding, Metal command-buffer error reporting, StaticRecomp timebase/TL/TU fixes, and the macOS ARM64 fallback contract |
 
 These replace the earlier partial patch series. Required CoreAudio,
 mixer, platform-stub, frontend, and build changes are no longer

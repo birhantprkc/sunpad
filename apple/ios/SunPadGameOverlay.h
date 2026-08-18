@@ -17,6 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)gameOverlayRequestsGameDataRemoval:(SunPadGameOverlay *)overlay;
 /* The user asked to configure the narrow physical-controller face-button map. */
 - (void)gameOverlayRequestsControllerMapping:(SunPadGameOverlay *)overlay;
+/* Current privacy-safe app/runtime state for a user-generated problem report. */
+- (NSString *)gameOverlayDiagnosticContext:(SunPadGameOverlay *)overlay;
+/* The performance profile actually selected at launch. */
+- (NSString *)gameOverlayPerformanceProfile:(SunPadGameOverlay *)overlay;
 @end
 
 /* UIKit overlay above the game render surface: the three-dot menu, render

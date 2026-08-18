@@ -55,8 +55,19 @@ NS_ASSUME_NONNULL_BEGIN
 /* Emulation speed ratio relative to real time (1.0 = full speed). */
 - (double)currentSpeed;
 
+/* Video-interface updates per second, useful when FPS alone looks healthy. */
+- (double)currentVPS;
+
+/* The profile actually selected for this runtime, independent of a setting
+ * changed after launch. */
+- (NSString *)currentPerformanceProfile;
+
 /* Internal (EFB) render resolution, e.g. "640x528". */
 - (NSString *)efbResolution;
+
+/* Bounded, privacy-safe runtime and graphics state for a user-generated
+ * diagnostic report. */
+- (NSString *)diagnosticSummary;
 
 @property(nonatomic, readonly, getter=isRunning) BOOL running;
 

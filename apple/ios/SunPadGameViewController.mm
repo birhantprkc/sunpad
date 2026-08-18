@@ -137,7 +137,7 @@ static SunPadPhysicalControllerButton SunPadPressedFaceButtons(GCExtendedGamepad
     if (pad.buttonB.isPressed) buttons |= SunPadPhysicalControllerButtonB;
     if (pad.buttonX.isPressed) buttons |= SunPadPhysicalControllerButtonX;
     if (pad.buttonY.isPressed) buttons |= SunPadPhysicalControllerButtonY;
-    if (pad.rightShoulder.isPressed) buttons |= SunPadPhysicalControllerButtonRightShoulder;
+    if (pad.leftShoulder.isPressed) buttons |= SunPadPhysicalControllerButtonLeftShoulder;
     return (SunPadPhysicalControllerButton)buttons;
 }
 
@@ -258,6 +258,8 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     double _lastPerformanceCPUSeconds;
     NSTimeInterval _lastPerformanceUptime;
     BOOL _hasPerformanceUsageBaseline;
+    NSString *_lastPerformanceSummary;
+    NSDate *_lastScreenshotMarker;
 }
 
 - (BOOL)shouldAutorotate {
@@ -341,6 +343,10 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(settingsChanged:)
                                                  name:NSUserDefaultsDidChangeNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(userDidTakeScreenshot:)
+                                                 name:UIApplicationUserDidTakeScreenshotNotification
                                                object:nil];
     // SunPad is an app-delegate UIKit app rather than a scene-based app. These
     // legacy notifications remain the only direct external-screen signal for
@@ -440,7 +446,13 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 
 - (void)updateFPSLabel {
     [self reconcileControllersForReason:@"periodic"];
-    double fps = [_coreHost currentFPS];
+    BOOL applicationActive = UIApplication.sharedApplication.applicationState ==
+        UIApplicationStateActive;
+    double fps = applicationActive ? [_coreHost currentFPS] : 0.0;
+    if (!applicationActive) {
+        _performanceLogSeconds = 0;
+        _hasPerformanceUsageBaseline = NO;
+    }
     if (fps > 0.0) {
         _bootStatusLabel.hidden = YES;
         [_bootActivityIndicator stopAnimating];
@@ -465,13 +477,19 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
                 _hasPerformanceUsageBaseline = YES;
             }
             NSString *topThreads = SunPadTopThreadUsage(usageInterval);
-            SunPadLog(@"performance fps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld aspect=%ld thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
-                      fps, [_coreHost currentSpeed], [_coreHost efbResolution],
+            _lastPerformanceSummary = [NSString stringWithFormat:
+                @"fps=%.1f vps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld aspect=%ld "
+                 @"thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
+                      fps, [_coreHost currentVPS], [_coreHost currentSpeed],
+                      [_coreHost efbResolution],
                       (long)[SunPadSettings sharedSettings].renderScale,
                       (long)[SunPadSettings sharedSettings].aspectRatioMode,
                       SunPadThermalStateName(processInfo.thermalState),
                       processInfo.isLowPowerModeEnabled, appCPUPercent, residentMiB,
-                      topThreads);
+                      topThreads];
+            NSString *graphics = [[_coreHost diagnosticSummary]
+                stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+            SunPadLog(@"performance %@ %@", _lastPerformanceSummary, graphics);
         }
     } else if (_coreHost != nil && !_bootStatusLabel.hidden &&
                _bootActivityIndicator.isAnimating) {
@@ -485,15 +503,23 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
         return;
     }
     if (fps > 0.0) {
-        // Super Mario Sunshine runs at a 30 Hz NTSC frame rate, so FPS ~ 30 is
-        // full speed. Dolphin's raw "speed" metric is not wired on the static
-        // recomp path and would read misleadingly.
+        // Super Mario Sunshine's supported mode runs at a 30 Hz NTSC frame
+        // rate, so FPS near 30 is full frame rate. Speed and VPS are retained
+        // in the diagnostic telemetry rather than cluttering this overlay.
         _fpsLabel.text = [NSString stringWithFormat:@"%.1f FPS", fps];
         _fpsLabel.hidden = NO;
         NSLog(@"[SunPad] FPS: %.1f  EFB: %@", fps, [_coreHost efbResolution]);
     } else {
         _fpsLabel.hidden = YES;
     }
+}
+
+- (void)userDidTakeScreenshot:(NSNotification *)notification {
+    (void)notification;
+    _lastScreenshotMarker = NSDate.date;
+    NSString *context = [[self gameOverlayDiagnosticContext:_overlay]
+        stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+    SunPadLog(@"diagnostic marker reason=user-screenshot %@", context);
 }
 
 - (void)observeControllers {
@@ -528,8 +554,9 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     [self reconcileControllersForReason:@"disconnect"];
 }
 
-/* BellPad's GameCube mapping: analog triggers carry L/R pressure (FLUDD),
- * the right shoulder is Z, menu is Start, and the D-pad maps to D-pad bits. */
+/* Analog triggers carry L/R pressure (FLUDD), the left shoulder is Z,
+ * the right shoulder is medium analog R, menu is Start, and the D-pad maps
+ * to D-pad bits. */
 - (void)configureController:(GCController *)controller playerSlot:(NSInteger)slot {
     GCExtendedGamepad *gamepad = controller.extendedGamepad;
     if (gamepad == nil) {
@@ -578,7 +605,6 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     state.connected = 1;
     state.buttons |= SunPadApplyControllerButtonMapping(
         [SunPadControllerMappingStore mapping], SunPadPressedFaceButtons(gamepad));
-    if (gamepad.leftShoulder.isPressed) state.buttons |= SunPadButtonL;
     if (gamepad.buttonMenu.isPressed) state.buttons |= SunPadButtonStart;
     if (gamepad.dpad.up.isPressed) state.buttons |= SunPadButtonDpadUp;
     if (gamepad.dpad.down.isPressed) state.buttons |= SunPadButtonDpadDown;
@@ -589,9 +615,12 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     state.cStickX = (int8_t)std::lround(gamepad.rightThumbstick.xAxis.value * 127.0f);
     state.cStickY = (int8_t)std::lround(gamepad.rightThumbstick.yAxis.value * 127.0f);
     state.triggerL = (uint8_t)std::lround(gamepad.leftTrigger.value * 255.0f);
-    state.triggerR = (uint8_t)std::lround(gamepad.rightTrigger.value * 255.0f);
+    uint8_t physicalTriggerR =
+        (uint8_t)std::lround(gamepad.rightTrigger.value * 255.0f);
+    state.triggerR = SunPadControllerRightTriggerPressure(
+        physicalTriggerR, gamepad.rightShoulder.isPressed);
     if (state.triggerL > 30) state.buttons |= SunPadButtonL;
-    if (state.triggerR > 30) state.buttons |= SunPadButtonR;
+    if (physicalTriggerR > 30) state.buttons |= SunPadButtonR;
     [[SunPadInputMixer sharedMixer] setInputState:state fromTouch:NO];
 }
 
@@ -955,10 +984,14 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 }
 
 - (void)pauseRuntimeForApplicationLifecycle {
+    _performanceLogSeconds = 0;
+    _hasPerformanceUsageBaseline = NO;
     [_coreHost pauseRuntimeForSystemEvent];
 }
 
 - (void)resumeRuntimeForApplicationLifecycle {
+    _performanceLogSeconds = 0;
+    _hasPerformanceUsageBaseline = NO;
     [self reconcileControllersForReason:@"foreground"];
     [_overlay refreshControllerVisibility];
     [_coreHost resumeRuntimeAfterSystemEvent];
@@ -1009,6 +1042,55 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     [self presentControllerMapping];
 }
 
+- (NSString *)gameOverlayDiagnosticContext:(SunPadGameOverlay *)overlay {
+    (void)overlay;
+    NSBundle *bundle = NSBundle.mainBundle;
+    SunPadSettings *settings = [SunPadSettings sharedSettings];
+    NSMutableArray<NSString *> *controllers = [NSMutableArray array];
+    for (GCController *controller in GCController.controllers) {
+        if (controller.extendedGamepad != nil) {
+            [controllers addObject:controller.vendorName ?: controller.productCategory ?: @"unknown"];
+        }
+    }
+    NSString *screenshot = @"none";
+    if (_lastScreenshotMarker != nil) {
+        screenshot = [NSString stringWithFormat:@"%.1f-seconds-ago",
+            MAX(0.0, -[_lastScreenshotMarker timeIntervalSinceNow])];
+    }
+    NSString *performance = _lastPerformanceSummary;
+    if (performance.length == 0) {
+        performance = [NSString stringWithFormat:
+            @"fps=%.1f vps=%.1f speedRatio=%.3f efb=%@",
+            [_coreHost currentFPS], [_coreHost currentVPS], [_coreHost currentSpeed],
+            [_coreHost efbResolution].length > 0 ? [_coreHost efbResolution] : @"unavailable"];
+    }
+    return [NSString stringWithFormat:
+        @"appVersion=%@ build=%@\n"
+         @"platform=%@ os=%@\n"
+         @"screen=%@ native=%@ drawable=%@\n"
+         @"settings renderScale=%ld aspect=%ld experimentalPerformance=%d experimental60FPS=%d\n"
+         @"controllers count=%lu names=%@\n"
+         @"recentScreenshot=%@\n"
+         @"performance %@\n%@",
+        [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"unknown",
+        [bundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"unknown",
+        UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad ? @"iPad" : @"iPhone",
+        NSProcessInfo.processInfo.operatingSystemVersionString,
+        NSStringFromCGRect(UIScreen.mainScreen.bounds),
+        NSStringFromCGRect(UIScreen.mainScreen.nativeBounds),
+        NSStringFromCGSize(((CAMetalLayer *)_gameView.layer).drawableSize),
+        (long)settings.renderScale, (long)settings.aspectRatioMode,
+        settings.experimentalPerformanceMode, settings.experimental60FPS,
+        (unsigned long)controllers.count,
+        controllers.count > 0 ? [controllers componentsJoinedByString:@", "] : @"none",
+        screenshot, performance, [_coreHost diagnosticSummary]];
+}
+
+- (NSString *)gameOverlayPerformanceProfile:(SunPadGameOverlay *)overlay {
+    (void)overlay;
+    return [_coreHost currentPerformanceProfile];
+}
+
 - (GCController *)firstExtendedController {
     GCController *playerOne = [self controllerForPlayerSlot:0];
     if (playerOne != nil)
@@ -1025,7 +1107,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     SunPadControllerButtonMapping mapping = [SunPadControllerMappingStore mapping];
     NSString *controllerName = controller.vendorName ?: controller.productCategory;
     NSString *message = controllerName.length > 0
-        ? [NSString stringWithFormat:@"Connected: %@\nOnly A, B, X, Y, and Z are remapped. Analog triggers, sticks, D-pad, Start, and L stay unchanged.",
+        ? [NSString stringWithFormat:@"Connected: %@\nOnly A, B, X, Y, and Z are remapped. Analog triggers, sticks, D-pad, Start, and the right shoulder spray stay unchanged.",
                                      controllerName]
         : @"No extended controller is connected. You can review or reset the saved mapping; connect a controller to test it.";
     if (controller.physicalInputProfile.hasRemappedElements) {
@@ -1078,7 +1160,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
         SunPadPhysicalControllerButtonB,
         SunPadPhysicalControllerButtonX,
         SunPadPhysicalControllerButtonY,
-        SunPadPhysicalControllerButtonRightShoulder,
+        SunPadPhysicalControllerButtonLeftShoulder,
     };
     __weak SunPadGameViewController *weakSelf = self;
     for (SunPadPhysicalControllerButton physicalButton : physicalButtons) {

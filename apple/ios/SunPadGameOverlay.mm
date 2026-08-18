@@ -507,7 +507,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         NSString *nextMode = currentSettings.experimentalPerformanceMode ?
             @"experimental performance mode" : @"the stable performance mode";
         NSString *warning = currentSettings.experimentalPerformanceMode ?
-            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, physics, or rendering. Severe visual corruption has been reported at 4×; use 1× or 2× while this interaction is investigated. If you encounter a problem, reproduce it and use Share Diagnostic Log from this menu. " : @"";
+            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, physics, or rendering. Severe visual corruption has been reported at 4×; use 1× or 2× while this interaction is investigated. If you encounter a problem, reproduce it and use Report a Problem from this menu. " : @"";
         UIAlertController *alert =
             [UIAlertController alertControllerWithTitle:@"Restart Required"
                                                 message:[NSString stringWithFormat:
@@ -524,12 +524,12 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     performanceAction.state = settings.experimentalPerformanceMode ?
         UIMenuElementStateOn : UIMenuElementStateOff;
 
-    UIAction *shareLogAction =
-        [UIAction actionWithTitle:@"Share Diagnostic Log…"
-                            image:[UIImage systemImageNamed:@"square.and.arrow.up"]
+    UIAction *reportProblemAction =
+        [UIAction actionWithTitle:@"Report a Problem…"
+                            image:[UIImage systemImageNamed:@"exclamationmark.bubble"]
                        identifier:nil handler:^(__kindof UIAction *action) {
         (void)action;
-        [weakSelf shareDiagnosticLog];
+        [weakSelf reportProblem];
     }];
 
     return [UIMenu menuWithTitle:@"SunPad" children:@[
@@ -551,37 +551,70 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
             [weakSelf toggleSettingsPanel];
         }],
         dataMenu,
-        shareLogAction,
+        reportProblemAction,
     ]];
 }
 
-- (void)shareDiagnosticLog {
+- (void)reportProblem {
     UIViewController *presenter = self.window.rootViewController;
-    UIAlertController *confirmation =
-        [UIAlertController alertControllerWithTitle:@"Share Diagnostic Log?"
-                                            message:@"The log can include your iOS version, display and controller details, game-image filename, app-container paths, and runtime errors. It never includes the game image, extracted files, or saves. Review the destination before sharing."
+    UIAlertController *prompt =
+        [UIAlertController alertControllerWithTitle:@"Report a Problem"
+                                            message:@"Answer briefly and SunPad will add the technical details. If the problem is visual, take a screenshot first and attach it with the report on GitHub. The report never includes your game image, extracted files, saves, signing material, or controller inputs. GitHub reports and attachments are public."
                                      preferredStyle:UIAlertControllerStyleAlert];
-    [confirmation addAction:[UIAlertAction actionWithTitle:@"Cancel"
-                                                       style:UIAlertActionStyleCancel
-                                                     handler:nil]];
+    [prompt addTextFieldWithConfigurationHandler:^(UITextField *field) {
+        field.placeholder = @"What went wrong?";
+        field.clearButtonMode = UITextFieldViewModeWhileEditing;
+    }];
+    [prompt addTextFieldWithConfigurationHandler:^(UITextField *field) {
+        field.placeholder = @"Area and what you were doing (optional)";
+        field.clearButtonMode = UITextFieldViewModeWhileEditing;
+    }];
+    [prompt addTextFieldWithConfigurationHandler:^(UITextField *field) {
+        field.placeholder = @"Every time, sometimes, once, or not sure?";
+        field.clearButtonMode = UITextFieldViewModeWhileEditing;
+    }];
+    [prompt addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                                style:UIAlertActionStyleCancel
+                                              handler:nil]];
     __weak SunPadGameOverlay *weakSelf = self;
-    [confirmation addAction:[UIAlertAction actionWithTitle:@"Continue"
-                                                       style:UIAlertActionStyleDefault
-                                                     handler:^(UIAlertAction *action) {
+    [prompt addAction:[UIAlertAction actionWithTitle:@"Share Report…"
+                                                style:UIAlertActionStyleDefault
+                                              handler:^(UIAlertAction *action) {
         (void)action;
-        [weakSelf presentDiagnosticLogShareSheet];
+        [weakSelf createDiagnosticReportFromPrompt:prompt openGitHub:NO];
     }]];
-    [presenter presentViewController:confirmation animated:YES completion:nil];
+    [prompt addAction:[UIAlertAction actionWithTitle:@"Report on GitHub"
+                                                style:UIAlertActionStyleDefault
+                                              handler:^(UIAlertAction *action) {
+        (void)action;
+        [weakSelf createDiagnosticReportFromPrompt:prompt openGitHub:YES];
+    }]];
+    prompt.preferredAction = prompt.actions.lastObject;
+    [presenter presentViewController:prompt animated:YES completion:nil];
 }
 
-- (void)presentDiagnosticLogShareSheet {
-    SunPadLog(@"diagnostic log share requested");
+- (void)createDiagnosticReportFromPrompt:(UIAlertController *)prompt
+                              openGitHub:(BOOL)openGitHub {
+    NSString *problem = prompt.textFields.count > 0 ? prompt.textFields[0].text : @"";
+    NSString *context = prompt.textFields.count > 1 ? prompt.textFields[1].text : @"";
+    NSString *frequency = prompt.textFields.count > 2 ? prompt.textFields[2].text : @"";
+    NSString *reportID = [NSString stringWithFormat:@"SP-%@",
+        [[[NSUUID UUID] UUIDString] substringToIndex:8]];
+    NSDictionary<NSString *, NSString *> *answers = @{
+        @"problem": problem ?: @"",
+        @"context": context ?: @"",
+        @"frequency": frequency ?: @"",
+    };
+    NSString *technicalContext = [self.delegate gameOverlayDiagnosticContext:self];
+    SunPadLog(@"diagnostic report requested id=%@ destination=%@",
+              reportID, openGitHub ? @"github" : @"share-sheet");
     NSError *error = nil;
-    NSURL *snapshotURL = SunPadDiagnosticsSnapshotURL(&error);
+    NSURL *reportURL = SunPadDiagnosticsReportURL(
+        reportID, answers, technicalContext, &error);
     UIViewController *presenter = self.window.rootViewController;
-    if (snapshotURL == nil) {
+    if (reportURL == nil) {
         UIAlertController *alert =
-            [UIAlertController alertControllerWithTitle:@"Diagnostic Log Unavailable"
+            [UIAlertController alertControllerWithTitle:@"Diagnostic Report Unavailable"
                                                 message:error.localizedDescription
                                          preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK"
@@ -591,13 +624,54 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         return;
     }
 
+    if (openGitHub) {
+        [self openGitHubReportWithID:reportID answers:answers];
+        return;
+    }
+
     UIActivityViewController *share =
-        [[UIActivityViewController alloc] initWithActivityItems:@[snapshotURL]
+        [[UIActivityViewController alloc] initWithActivityItems:@[reportURL]
                                          applicationActivities:nil];
     UIPopoverPresentationController *popover = share.popoverPresentationController;
     popover.sourceView = _menuButton;
     popover.sourceRect = _menuButton.bounds;
     [presenter presentViewController:share animated:YES completion:nil];
+}
+
+- (void)openGitHubReportWithID:(NSString *)reportID
+                       answers:(NSDictionary<NSString *, NSString *> *)answers {
+    NSBundle *bundle = NSBundle.mainBundle;
+    NSString *version = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"unknown";
+    NSString *build = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"unknown";
+    NSString *platform = self.traitCollection.userInterfaceIdiom == UIUserInterfaceIdiomPad ?
+        @"iPad" : @"iPhone";
+    NSString *problem = answers[@"problem"].length > 0 ? answers[@"problem"] : @"SunPad problem";
+    if (problem.length > 100)
+        problem = [problem substringToIndex:100];
+    NSURLComponents *components = [NSURLComponents
+        componentsWithString:@"https://github.com/chrissotraidis/sunpad/issues/new"];
+    components.queryItems = @[
+        [NSURLQueryItem queryItemWithName:@"template" value:@"bug_report.yml"],
+        [NSURLQueryItem queryItemWithName:@"title"
+                                    value:[NSString stringWithFormat:@"[Bug]: %@", problem]],
+        [NSURLQueryItem queryItemWithName:@"report-id" value:reportID],
+        [NSURLQueryItem queryItemWithName:@"revision"
+                                    value:[NSString stringWithFormat:@"%@ (build %@)", version, build]],
+        [NSURLQueryItem queryItemWithName:@"platform" value:platform],
+        [NSURLQueryItem queryItemWithName:@"performance-profile"
+                                    value:[self.delegate gameOverlayPerformanceProfile:self]],
+        [NSURLQueryItem queryItemWithName:@"summary" value:answers[@"problem"]],
+        [NSURLQueryItem queryItemWithName:@"context" value:answers[@"context"]],
+        [NSURLQueryItem queryItemWithName:@"frequency" value:answers[@"frequency"]],
+    ];
+    NSURL *url = components.URL;
+    if (url == nil)
+        return;
+    [UIApplication.sharedApplication openURL:url options:@{}
+                           completionHandler:^(BOOL success) {
+        if (!success)
+            SunPadLog(@"diagnostic github open failed id=%@", reportID);
+    }];
 }
 
 - (UIAction *)aspectRatioAction:(NSString *)title mode:(SunPadAspectRatioMode)mode {

@@ -5,6 +5,8 @@
 static NSString *const SunPadControllerMappingDefaultsKey =
     @"SunPadControllerButtonMappingV1";
 
+static uint8_t const SunPadRunAndSprayPressure = 128;
+
 static NSArray<NSString *> *SunPadMappingKeys(void) {
     return @[@"A", @"B", @"X", @"Y", @"Z"];
 }
@@ -32,7 +34,7 @@ SunPadControllerButtonMapping SunPadDefaultControllerButtonMapping(void) {
         .gameB = SunPadPhysicalControllerButtonB,
         .gameX = SunPadPhysicalControllerButtonX,
         .gameY = SunPadPhysicalControllerButtonY,
-        .gameZ = SunPadPhysicalControllerButtonRightShoulder,
+        .gameZ = SunPadPhysicalControllerButtonLeftShoulder,
     };
 }
 
@@ -41,7 +43,7 @@ BOOL SunPadControllerButtonMappingIsValid(SunPadControllerButtonMapping mapping)
     const uint8_t allowed = SunPadPhysicalControllerButtonA |
         SunPadPhysicalControllerButtonB | SunPadPhysicalControllerButtonX |
         SunPadPhysicalControllerButtonY |
-        SunPadPhysicalControllerButtonRightShoulder;
+        SunPadPhysicalControllerButtonLeftShoulder;
     for (NSNumber *number in SunPadMappingValues(mapping)) {
         uint8_t value = number.unsignedCharValue;
         if (value == 0 || (value & (value - 1)) != 0 || (value & ~allowed) != 0 ||
@@ -97,9 +99,16 @@ NSString *SunPadPhysicalControllerButtonName(SunPadPhysicalControllerButton butt
     case SunPadPhysicalControllerButtonB: return @"B";
     case SunPadPhysicalControllerButtonX: return @"X";
     case SunPadPhysicalControllerButtonY: return @"Y";
-    case SunPadPhysicalControllerButtonRightShoulder: return @"Right Shoulder";
+    case SunPadPhysicalControllerButtonLeftShoulder: return @"Left Shoulder";
     default: return @"Unknown";
     }
+}
+
+uint8_t SunPadControllerRightTriggerPressure(
+    uint8_t triggerPressure, BOOL rightShoulderPressed) {
+    return rightShoulderPressed
+        ? MAX(triggerPressure, SunPadRunAndSprayPressure)
+        : triggerPressure;
 }
 
 @implementation SunPadControllerMappingStore

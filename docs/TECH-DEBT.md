@@ -352,10 +352,12 @@ warned, and excluded from support claims.
 - `apple/ios/SunPadCoreHost.mm`: Metal, module, render-scale, and 60 FPS setup.
 - `scripts/prepare-game.sh`: production portable-C module generation.
 - `scripts/ios-build-core-device.sh`: iPhoneOS module cross-build.
-- `patches/ModernGekko/0001-sunpad-apple-runtime.patch`: 60 FPS activation and
-  software vertex-loader selection.
+- `patches/ModernGekko/0001-sunpad-apple-runtime.patch`: 60 FPS activation,
+  software vertex-loader selection, warning/error forwarding, and bounded
+  frame/graphics diagnostic snapshots.
 - `patches/ModernGekko-dolphin/0001-sunpad-ios-runtime.patch`: interpreter-only
-  iOS fallback, timebase repair, Metal/iOS, and audio changes.
+  iOS fallback, timebase repair, Metal/iOS, audio changes, and the embedder
+  log/Metal command-buffer error hooks.
 - `docs/TESTING.md`: retained hardware telemetry and missing hands-on symptom
   classification.
 - [Dolphin's Super Mario Sunshine notes](https://wiki.dolphin-emu.org/index.php?title=Super_Mario_Sunshine): upstream game and 60 FPS limitations.
