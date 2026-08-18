@@ -48,7 +48,7 @@ game module.
 | Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
 | Settings | Live 1×–4× render scale, original 4:3 plus experimental widescreen/fill modes, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 4 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 5 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,14 +69,14 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.4-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.4/SunPad-0.1.0-preview.4-unsigned.ipa).
-Preview 4 adds an honest first-launch game-data screen with a direct
-**Choose ISO or GCM** action and hardens controller disconnect/reconnect,
-player-slot retention, stale-handle cleanup, held-input release, and foreground
-resume. It retains the accepted Preview 3 touch and performance baseline. The
-**Experimental Performance Mode
-(Restart Required)** is default-off and intended to collect comparable iPhone
-and iPad evidence; stable performance behavior remains the default.
+[`SunPad-0.1.0-preview.5-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.5/SunPad-0.1.0-preview.5-unsigned.ipa).
+Preview 5 adds the accepted controller layout: left shoulder for Z, right
+shoulder for a medium-pressure run-and-spray stream, and right trigger for the
+strong stream. **Report a Problem…** now asks three short questions, exports a
+privacy-bounded diagnostic report with richer runtime and graphics evidence,
+and opens a matching GitHub issue form. Experimental Performance Mode remains
+default-off and now records explicit comparison profiles and visual diagnostics;
+stable performance behavior remains the default.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -306,7 +306,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 4** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 5** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game
