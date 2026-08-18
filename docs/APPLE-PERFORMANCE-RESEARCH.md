@@ -36,11 +36,36 @@ changes are useful but do not constitute a general fix.
 At the worst reproduced 0.759-speed interval, reaching real time requires
 roughly a 24% reduction in critical-path work (equivalently, about 32% more
 throughput). No single remaining measured cost is that large in every scene.
-The credible solution is therefore a combination: use another core for video
-work, make the hottest generated CPU regions cheaper, and prevent shader
-compilation from competing at the game thread's scheduling priority. A
-conservative emulated-CPU underclock remains a compatibility fallback only if
-those changes cannot close the gap on older phones.
+The credible solution is therefore a combination: make the hottest generated
+CPU regions and portable vertex work cheaper, and prevent shader compilation
+from competing at the game thread's scheduling priority. The tested CPU/video
+split is not part of that path because it produced a confirmed FIFO
+desynchronization. A conservative emulated-CPU underclock remains a
+compatibility fallback only if its timing and rendering behavior pass the
+scene matrix below.
+
+The released Preview 3 90% underclock candidate subsequently produced one
+severe visual-corruption report in the Delfino Plaza E.B.S. scene while 4× EFB
+rendering (`2560×2112`) was active. The log stayed on the synchronized CPU-GPU
+path and showed plausible FPS/speed at nominal thermals, so this is a
+correctness failure that ordinary performance counters do not detect. It does
+not yet prove whether the trigger is the 90% guest clock, 4× EFB, or their
+interaction.
+
+The next diagnostic iteration keeps the single public experimental toggle and
+adds developer-only launch profiles:
+
+- `-sunpadExperimentalPerformanceQoSOnly`: 100% clock plus `userInitiated` QoS;
+- `-sunpadExperimentalPerformance95`: 95% clock plus `userInitiated` QoS; and
+- `-sunpadExperimentalPerformanceMode`: the current 90% clock plus
+  `userInitiated` QoS.
+
+Fresh-launch each profile, plus the stable 100%/inherited baseline, through the
+same E.B.S. scene at Original 4:3 and both 1× and 4×. If only 90% fails, advance
+95% as the next candidate. If both profiles fail only at 4×, investigate the
+EFB/Metal synchronization path. If stable also fails, treat it as a shared
+renderer/runtime regression rather than an experimental-clock result. Do not
+add these developer profiles to the public menu.
 
 Game Mode is worth declaring and testing, but it is scheduling assistance, not
 a replacement for this work. Apple says it reduces background activity and

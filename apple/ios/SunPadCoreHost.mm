@@ -31,7 +31,7 @@ namespace fs = std::filesystem;
 #include "VideoCommon/VideoConfig.h"
 
 @interface SunPadCoreHost ()
-- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode;
+- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode source:(NSString *)source;
 - (void)applySystemPauseState;
 - (void)scheduleSystemStateRetry;
 - (void)handleAudioSessionInterruption:(NSNotification *)notification;
@@ -187,19 +187,45 @@ namespace fs = std::filesystem;
             [NSProcessInfo.processInfo.arguments containsObject:@"-sunpadExperimental60FPS"];
         BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
         config.enable_gmse01_60fps = launchArgument60FPS || menuPreference60FPS;
-        BOOL launchArgumentPerformance = [NSProcessInfo.processInfo.arguments
+        NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
+        BOOL launchArgumentPerformance90 = [arguments
             containsObject:@"-sunpadExperimentalPerformanceMode"];
+        BOOL launchArgumentPerformance95 = [arguments
+            containsObject:@"-sunpadExperimentalPerformance95"];
+        BOOL launchArgumentPerformanceQoSOnly = [arguments
+            containsObject:@"-sunpadExperimentalPerformanceQoSOnly"];
         BOOL menuPreferencePerformance =
             [SunPadSettings sharedSettings].experimentalPerformanceMode;
-        BOOL useExperimentalPerformance =
-            launchArgumentPerformance || menuPreferencePerformance;
-        if (useExperimentalPerformance)
-            config.emulated_cpu_clock_scale = 0.90f;
-        if (useExperimentalPerformance) {
-            const int qosResult =
-                pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
-            SunPadLog(@"runtime performance profile=experimental-single-core-90 cpuVideoSplit=0 emulatedCPUClock=0.90 gameThreadQoS=userInitiated qosResult=%d source=%@",
-                      qosResult, launchArgumentPerformance ? @"launch argument" : @"menu preference");
+
+        NSString *performanceProfile = @"stable";
+        NSString *performanceSource = @"default";
+        float emulatedCPUClock = 1.00f;
+        BOOL useExperimentalQoS = NO;
+        if (launchArgumentPerformanceQoSOnly) {
+            performanceProfile = @"experimental-qos-only-100";
+            performanceSource = @"launch argument";
+            useExperimentalQoS = YES;
+        } else if (launchArgumentPerformance95) {
+            performanceProfile = @"experimental-single-core-95";
+            performanceSource = @"launch argument";
+            emulatedCPUClock = 0.95f;
+            useExperimentalQoS = YES;
+        } else if (launchArgumentPerformance90 || menuPreferencePerformance) {
+            performanceProfile = @"experimental-single-core-90";
+            performanceSource = launchArgumentPerformance90 ?
+                @"launch argument" : @"menu preference";
+            emulatedCPUClock = 0.90f;
+            useExperimentalQoS = YES;
+        }
+
+        if (emulatedCPUClock < 1.00f)
+            config.emulated_cpu_clock_scale = emulatedCPUClock;
+        int qosResult = 0;
+        if (useExperimentalQoS)
+            qosResult = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+        if (useExperimentalQoS) {
+            SunPadLog(@"runtime performance profile=%@ cpuVideoSplit=0 emulatedCPUClock=%.2f gameThreadQoS=userInitiated qosResult=%d source=%@",
+                      performanceProfile, emulatedCPUClock, qosResult, performanceSource);
         } else {
             SunPadLog(@"runtime performance profile=stable cpuVideoSplit=0 emulatedCPUClock=1.00 gameThreadQoS=inherited source=default");
         }
@@ -249,15 +275,16 @@ namespace fs = std::filesystem;
         NSNumber *savedScaleValue =
             [[NSUserDefaults standardUserDefaults] objectForKey:@"SunPadRenderScale"];
         NSInteger savedScale = savedScaleValue ? savedScaleValue.integerValue : 1;
-        Config::SetCurrent(Config::GFX_EFB_SCALE,
-                           static_cast<int>(savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale)));
+        NSInteger clampedSavedScale = savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale);
+        Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clampedSavedScale));
         Config::SetCurrent(Config::GFX_MAX_EFB_SCALE, 12);
+        SunPadLog(@"runtime render scale=%ld source=persisted", (long)clampedSavedScale);
 
         NSNumber *savedAspectValue = [[NSUserDefaults standardUserDefaults]
             objectForKey:@"SunPadAspectRatioMode"];
         SunPadAspectRatioMode savedAspect = savedAspectValue ?
             (SunPadAspectRatioMode)savedAspectValue.integerValue : SunPadAspectRatioOriginal;
-        [self applyAspectRatioMode:savedAspect];
+        [self applyAspectRatioMode:savedAspect source:@"persisted"];
 
         // Open the input FIFO for writing (blocks until the runtime reads it).
         NSString *pipePath = [[userDirectory stringByAppendingPathComponent:@"Pipes"]
@@ -332,15 +359,19 @@ namespace fs = std::filesystem;
     // Config::SetCurrent is mutex-protected and the video backend refreshes
     // g_ActiveConfig on the next config callback.
     Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clamped));
+    SunPadLog(@"runtime render scale=%ld source=live", (long)clamped);
 }
 
-- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode {
+- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode source:(NSString *)source {
+    NSString *modeName = @"original-4:3";
     switch (mode) {
     case SunPadAspectRatioWidescreen:
+        modeName = @"widescreen-16:9";
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, AspectMode::ForceWide);
         Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, true);
         break;
     case SunPadAspectRatioFillScreen: {
+        modeName = @"fill-screen";
         CGSize size = _layer.drawableSize;
         int width = MAX(1, (int)std::lround(size.width));
         int height = MAX(1, (int)std::lround(size.height));
@@ -356,12 +387,13 @@ namespace fs = std::filesystem;
         Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false);
         break;
     }
+    SunPadLog(@"runtime aspect mode=%@ source=%@", modeName, source);
 }
 
 - (void)setAspectRatioMode:(SunPadAspectRatioMode)mode {
     if (!_running->load())
         return; // Runtime not booted yet; the mode applies at boot.
-    [self applyAspectRatioMode:mode];
+    [self applyAspectRatioMode:mode source:@"live"];
 }
 
 - (double)currentFPS {

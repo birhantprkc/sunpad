@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-08-13
+Last updated: 2026-08-18
 
 ## iOS / iPadOS
 
@@ -129,7 +129,12 @@ Last updated: 2026-08-13
     synchronized single CPU-GPU thread, reduces the emulated CPU clock to 90%,
     and applies `userInitiated` QoS. It produced measurable headroom in two
     confirmed-gameplay iPhone 14 traces at Serious thermal state, but may alter
-    game timing, audio, physics, or scene behavior. The earlier dual-core route
+    game timing, audio, physics, rendering, or scene behavior. A Preview 3
+    report captured severe visual corruption in the Delfino Plaza E.B.S. scene
+    while the 90% profile and 4× EFB (`2560×2112`) were both active. FPS,
+    speed ratio, and nominal thermals did not expose the bad frame. The evidence
+    does not yet distinguish the 90% clock from a clock-plus-4× EFB interaction.
+    The earlier dual-core route
     is rejected because confirmed gameplay produced a FIFO Unknown Opcode from
     CPU/GPU desynchronization. After reproducing a problem, use **••• → Share
     Diagnostic Log…** and include device model, OS version, scene, approximate

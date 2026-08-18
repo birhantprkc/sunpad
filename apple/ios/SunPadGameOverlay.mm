@@ -507,7 +507,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         NSString *nextMode = currentSettings.experimentalPerformanceMode ?
             @"experimental performance mode" : @"the stable performance mode";
         NSString *warning = currentSettings.experimentalPerformanceMode ?
-            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, or physics. If you encounter a problem, reproduce it and use Share Diagnostic Log from this menu. " : @"";
+            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, physics, or rendering. Severe visual corruption has been reported at 4×; use 1× or 2× while this interaction is investigated. If you encounter a problem, reproduce it and use Share Diagnostic Log from this menu. " : @"";
         UIAlertController *alert =
             [UIAlertController alertControllerWithTitle:@"Restart Required"
                                                 message:[NSString stringWithFormat:

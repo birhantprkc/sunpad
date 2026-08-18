@@ -465,9 +465,10 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
                 _hasPerformanceUsageBaseline = YES;
             }
             NSString *topThreads = SunPadTopThreadUsage(usageInterval);
-            SunPadLog(@"performance fps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
+            SunPadLog(@"performance fps=%.1f speedRatio=%.3f efb=%@ renderScale=%ld aspect=%ld thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
                       fps, [_coreHost currentSpeed], [_coreHost efbResolution],
                       (long)[SunPadSettings sharedSettings].renderScale,
+                      (long)[SunPadSettings sharedSettings].aspectRatioMode,
                       SunPadThermalStateName(processInfo.thermalState),
                       processInfo.isLowPowerModeEnabled, appCPUPercent, residentMiB,
                       topThreads);
