@@ -148,11 +148,14 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
   is the large-iPad default; compact-iPhone defaults remain unchanged and need
   a separate play pass.
 - Physical-controller button remapping is implemented in source for A/B/X/Y/Z
-  only, with one-to-one swaps, persistence, and reset. Sticks, D-pad, Start,
-  left shoulder, and analog triggers remain fixed. Physical DualSense
-  acceptance remains open. Automated controller-slot, missed-removal,
-  disconnect-release, and foreground-reconciliation coverage passes; physical
-  Bluetooth, wired, and natural-sleep reconnect acceptance remains open.
+  only across the four face buttons and left shoulder, with one-to-one swaps,
+  persistence, and reset. The default left shoulder is Z. The fixed right
+  shoulder supplies 50% analog R without the digital click for run-and-spray,
+  while the right trigger retains the strong/full path. Physical DualSense
+  acceptance of the revised mapping remains open. Automated mapping,
+  controller-slot, missed-removal, disconnect-release, and
+  foreground-reconciliation coverage passes; physical Bluetooth, wired, and
+  natural-sleep reconnect acceptance remains open.
 - A default-off **Experimental 60 FPS (Restart Required)** menu option now
   exposes the guarded GMSE01 boot path for hands-on testing; the existing
   `-sunpadExperimental60FPS` launch argument remains available for controlled

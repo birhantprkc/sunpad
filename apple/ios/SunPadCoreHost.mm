@@ -3,6 +3,7 @@
 #import "SunPadInputPipeEncoder.h"
 
 #import <AVFAudio/AVFAudio.h>
+#import <Metal/Metal.h>
 #import <fcntl.h>
 #import <pthread.h>
 #import <sys/stat.h>
@@ -30,8 +31,20 @@ namespace fs = std::filesystem;
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoConfig.h"
 
+static void SunPadRuntimeLogCallback(
+    moderngekko::RuntimeLogLevel level, const char *category,
+    const char *message, void *userData) {
+    (void)userData;
+    @autoreleasepool {
+        SunPadLogRuntimeEvent(
+            level == moderngekko::RuntimeLogLevel::Error ? @"error" : @"warning",
+            category != nullptr ? @(category) : @"runtime",
+            message != nullptr ? @(message) : @"unknown runtime event");
+    }
+}
+
 @interface SunPadCoreHost ()
-- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode;
+- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode source:(NSString *)source;
 - (void)applySystemPauseState;
 - (void)scheduleSystemStateRetry;
 - (void)handleAudioSessionInterruption:(NSNotification *)notification;
@@ -54,6 +67,10 @@ namespace fs = std::filesystem;
     BOOL _audioSessionNeedsReactivation;
     BOOL _systemStateRetryScheduled;
     NSUInteger _systemStateRetryAttempts;
+    NSString *_activePerformanceProfile;
+    NSString *_activePerformanceSource;
+    NSString *_activeFrameMode;
+    unsigned long long _moduleFileSize;
 }
 
 - (instancetype)initWithLayer:(CAMetalLayer *)layer {
@@ -73,6 +90,10 @@ namespace fs = std::filesystem;
         _audioSessionNeedsReactivation = NO;
         _systemStateRetryScheduled = NO;
         _systemStateRetryAttempts = 0;
+        _activePerformanceProfile = @"not started";
+        _activePerformanceSource = @"none";
+        _activeFrameMode = @"not started";
+        _moduleFileSize = 0;
         [[NSNotificationCenter defaultCenter]
             addObserver:self
                selector:@selector(handleAudioSessionInterruption:)
@@ -161,6 +182,8 @@ namespace fs = std::filesystem;
     SunPadLog(@"runtime thread starting discImage=%d moduleExists=%d",
               discImagePath.length > 0,
               [[NSFileManager defaultManager] fileExistsAtPath:modulePath]);
+    _moduleFileSize = [[[NSFileManager defaultManager]
+        attributesOfItemAtPath:modulePath error:nil][NSFileSize] unsignedLongLongValue];
     *_gameThread = std::thread([self, gameRoot, discImagePath, modulePath, userDirectory] {
         [self runGameWithGameRoot:gameRoot
                     discImagePath:discImagePath
@@ -183,25 +206,56 @@ namespace fs = std::filesystem;
         config.graphics.backend = "Metal";
         config.headless = false;
         config.show_fps_in_title = false;
+        config.log_callback = SunPadRuntimeLogCallback;
         BOOL launchArgument60FPS =
             [NSProcessInfo.processInfo.arguments containsObject:@"-sunpadExperimental60FPS"];
         BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
         config.enable_gmse01_60fps = launchArgument60FPS || menuPreference60FPS;
-        BOOL launchArgumentPerformance = [NSProcessInfo.processInfo.arguments
+        NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
+        BOOL launchArgumentPerformance90 = [arguments
             containsObject:@"-sunpadExperimentalPerformanceMode"];
+        BOOL launchArgumentPerformance95 = [arguments
+            containsObject:@"-sunpadExperimentalPerformance95"];
+        BOOL launchArgumentPerformanceQoSOnly = [arguments
+            containsObject:@"-sunpadExperimentalPerformanceQoSOnly"];
         BOOL menuPreferencePerformance =
             [SunPadSettings sharedSettings].experimentalPerformanceMode;
-        BOOL useExperimentalPerformance =
-            launchArgumentPerformance || menuPreferencePerformance;
-        if (useExperimentalPerformance)
-            config.emulated_cpu_clock_scale = 0.90f;
-        if (useExperimentalPerformance) {
-            const int qosResult =
-                pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
-            SunPadLog(@"runtime performance profile=experimental-single-core-90 cpuVideoSplit=0 emulatedCPUClock=0.90 gameThreadQoS=userInitiated qosResult=%d source=%@",
-                      qosResult, launchArgumentPerformance ? @"launch argument" : @"menu preference");
+
+        NSString *performanceProfile = @"stable";
+        NSString *performanceSource = @"default";
+        float emulatedCPUClock = 1.00f;
+        BOOL useExperimentalQoS = NO;
+        if (launchArgumentPerformanceQoSOnly) {
+            performanceProfile = @"experimental-qos-only-100";
+            performanceSource = @"launch argument";
+            useExperimentalQoS = YES;
+        } else if (launchArgumentPerformance95) {
+            performanceProfile = @"experimental-single-core-95";
+            performanceSource = @"launch argument";
+            emulatedCPUClock = 0.95f;
+            useExperimentalQoS = YES;
+        } else if (launchArgumentPerformance90 || menuPreferencePerformance) {
+            performanceProfile = @"experimental-single-core-90";
+            performanceSource = launchArgumentPerformance90 ?
+                @"launch argument" : @"menu preference";
+            emulatedCPUClock = 0.90f;
+            useExperimentalQoS = YES;
+        }
+
+        if (emulatedCPUClock < 1.00f)
+            config.emulated_cpu_clock_scale = emulatedCPUClock;
+        int qosResult = 0;
+        if (useExperimentalQoS)
+            qosResult = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+        if (useExperimentalQoS) {
+            SunPadLog(@"runtime performance profile=%@ cpuVideoSplit=0 emulatedCPUClock=%.2f gameThreadQoS=userInitiated qosResult=%d source=%@",
+                      performanceProfile, emulatedCPUClock, qosResult, performanceSource);
         } else {
             SunPadLog(@"runtime performance profile=stable cpuVideoSplit=0 emulatedCPUClock=1.00 gameThreadQoS=inherited source=default");
+        }
+        @synchronized (self) {
+            _activePerformanceProfile = performanceProfile;
+            _activePerformanceSource = performanceSource;
         }
         config.render_surface = (__bridge void *)_layer;
         config.module = moderngekko::ModuleSource::DynamicPath(
@@ -209,6 +263,10 @@ namespace fs = std::filesystem;
 
         NSString *frameModeSource = launchArgument60FPS ? @"launch argument" :
             (menuPreference60FPS ? @"menu preference" : @"default");
+        @synchronized (self) {
+            _activeFrameMode = config.enable_gmse01_60fps ?
+                @"experimental-60-fps" : @"original-30-fps";
+        }
         SunPadLog(@"runtime frame mode=%@ source=%@",
                   config.enable_gmse01_60fps ? @"60 FPS experimental" : @"original 30 FPS",
                   frameModeSource);
@@ -249,15 +307,16 @@ namespace fs = std::filesystem;
         NSNumber *savedScaleValue =
             [[NSUserDefaults standardUserDefaults] objectForKey:@"SunPadRenderScale"];
         NSInteger savedScale = savedScaleValue ? savedScaleValue.integerValue : 1;
-        Config::SetCurrent(Config::GFX_EFB_SCALE,
-                           static_cast<int>(savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale)));
+        NSInteger clampedSavedScale = savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale);
+        Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clampedSavedScale));
         Config::SetCurrent(Config::GFX_MAX_EFB_SCALE, 12);
+        SunPadLog(@"runtime render scale=%ld source=persisted", (long)clampedSavedScale);
 
         NSNumber *savedAspectValue = [[NSUserDefaults standardUserDefaults]
             objectForKey:@"SunPadAspectRatioMode"];
         SunPadAspectRatioMode savedAspect = savedAspectValue ?
             (SunPadAspectRatioMode)savedAspectValue.integerValue : SunPadAspectRatioOriginal;
-        [self applyAspectRatioMode:savedAspect];
+        [self applyAspectRatioMode:savedAspect source:@"persisted"];
 
         // Open the input FIFO for writing (blocks until the runtime reads it).
         NSString *pipePath = [[userDirectory stringByAppendingPathComponent:@"Pipes"]
@@ -332,15 +391,19 @@ namespace fs = std::filesystem;
     // Config::SetCurrent is mutex-protected and the video backend refreshes
     // g_ActiveConfig on the next config callback.
     Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clamped));
+    SunPadLog(@"runtime render scale=%ld source=live", (long)clamped);
 }
 
-- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode {
+- (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode source:(NSString *)source {
+    NSString *modeName = @"original-4:3";
     switch (mode) {
     case SunPadAspectRatioWidescreen:
+        modeName = @"widescreen-16:9";
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, AspectMode::ForceWide);
         Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, true);
         break;
     case SunPadAspectRatioFillScreen: {
+        modeName = @"fill-screen";
         CGSize size = _layer.drawableSize;
         int width = MAX(1, (int)std::lround(size.width));
         int height = MAX(1, (int)std::lround(size.height));
@@ -356,12 +419,13 @@ namespace fs = std::filesystem;
         Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false);
         break;
     }
+    SunPadLog(@"runtime aspect mode=%@ source=%@", modeName, source);
 }
 
 - (void)setAspectRatioMode:(SunPadAspectRatioMode)mode {
     if (!_running->load())
         return; // Runtime not booted yet; the mode applies at boot.
-    [self applyAspectRatioMode:mode];
+    [self applyAspectRatioMode:mode source:@"live"];
 }
 
 - (double)currentFPS {
@@ -376,12 +440,62 @@ namespace fs = std::filesystem;
     return Core::System::GetInstance().GetPerfMetrics().GetSpeed();
 }
 
+- (double)currentVPS {
+    if (!_running->load())
+        return 0.0;
+    return Core::System::GetInstance().GetPerfMetrics().GetVPS();
+}
+
+- (NSString *)currentPerformanceProfile {
+    @synchronized (self) {
+        return _activePerformanceProfile ?: @"unknown";
+    }
+}
+
 - (NSString *)efbResolution {
     if (!_running->load())
         return @"";
     auto &metrics = Core::System::GetInstance().GetPerfMetrics();
     return [NSString stringWithFormat:@"%ux%u", metrics.GetEFBWidth(),
                                       metrics.GetEFBHeight()];
+}
+
+- (NSString *)diagnosticSummary {
+    moderngekko::RuntimeDiagnosticsSnapshot diagnostics = {};
+    BOOL hasRuntime = NO;
+    {
+        std::scoped_lock lock(*_runtimeMutex);
+        hasRuntime = _runtime != nullptr;
+        if (hasRuntime)
+            diagnostics = _runtime->GetDiagnosticsSnapshot();
+    }
+    NSString *profile;
+    NSString *profileSource;
+    NSString *frameMode;
+    @synchronized (self) {
+        profile = _activePerformanceProfile;
+        profileSource = _activePerformanceSource;
+        frameMode = _activeFrameMode;
+    }
+    return [NSString stringWithFormat:
+        @"runtimeState=%@ paused=%d audioInterrupted=%d\n"
+         @"performanceProfile=%@ profileSource=%@ frameMode=%@\n"
+         @"metalDevice=%@ moduleBytes=%llu\n"
+         @"graphics frames=%llu projectionHash=%016llx draws=%u primitives=%u "
+         @"bpLoads=%u cpLoads=%u xfLoads=%u shaderChanges=%u scissors=%u\n"
+         @"graphicsResources texturesCreated=%u texturesAlive=%u "
+         @"vertexShadersCreated=%u pixelShadersCreated=%u\n",
+        hasRuntime ? @"created" : (_starting->load() ? @"starting" :
+            (_running->load() ? @"running-without-handle" : @"stopped")),
+        _runtimePausedForSystemEvent, _audioInterrupted,
+        profile ?: @"unknown", profileSource ?: @"unknown", frameMode ?: @"unknown",
+        _layer.device.name ?: @"unknown", _moduleFileSize,
+        diagnostics.frame_count, diagnostics.projection_hash,
+        diagnostics.draw_calls, diagnostics.primitives,
+        diagnostics.bp_loads, diagnostics.cp_loads, diagnostics.xf_loads,
+        diagnostics.shader_changes, diagnostics.scissor_count,
+        diagnostics.textures_created, diagnostics.textures_alive,
+        diagnostics.vertex_shaders_created, diagnostics.pixel_shaders_created];
 }
 
 - (void)stop {

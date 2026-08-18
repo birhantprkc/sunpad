@@ -19,8 +19,13 @@ int main(void) {
         SunPadControllerButtonMapping mapping = defaults;
         assert(SunPadControllerButtonMappingIsValid(mapping));
         assert(SunPadApplyControllerButtonMapping(mapping,
-            SunPadPhysicalControllerButtonA | SunPadPhysicalControllerButtonRightShoulder) ==
+            SunPadPhysicalControllerButtonA | SunPadPhysicalControllerButtonLeftShoulder) ==
             (SunPadButtonA | SunPadButtonZ));
+        assert(SunPadControllerRightTriggerPressure(0, NO) == 0);
+        assert(SunPadControllerRightTriggerPressure(0, YES) == 128);
+        assert(SunPadControllerRightTriggerPressure(64, YES) == 128);
+        assert(SunPadControllerRightTriggerPressure(192, YES) == 192);
+        assert(SunPadControllerRightTriggerPressure(255, NO) == 255);
 
         mapping = SunPadControllerButtonMappingByAssigning(
             mapping, SunPadPhysicalControllerButtonB, SunPadButtonA);
@@ -34,7 +39,7 @@ int main(void) {
         corrupt.gameZ = SunPadPhysicalControllerButtonB;
         assert(!SunPadControllerButtonMappingIsValid(corrupt));
         assert(SunPadApplyControllerButtonMapping(corrupt,
-            SunPadPhysicalControllerButtonRightShoulder) == SunPadButtonZ);
+            SunPadPhysicalControllerButtonLeftShoulder) == SunPadButtonZ);
 
         [SunPadControllerMappingStore reset];
         assert(MappingsEqual([SunPadControllerMappingStore mapping], defaults));
@@ -50,7 +55,7 @@ int main(void) {
             @"B": @(SunPadPhysicalControllerButtonA),
             @"X": @(SunPadPhysicalControllerButtonX),
             @"Y": @(SunPadPhysicalControllerButtonY),
-            @"Z": @(SunPadPhysicalControllerButtonRightShoulder),
+            @"Z": @(SunPadPhysicalControllerButtonLeftShoulder),
         };
         [[NSUserDefaults standardUserDefaults]
             setObject:corruptSavedMapping

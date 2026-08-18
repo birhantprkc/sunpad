@@ -1,17 +1,26 @@
 name: Bug report
-description: Report a reproducible SunPad problem without uploading protected data
+description: Share a SunPad diagnostic report and the smallest useful visual evidence
 title: "[Bug]: "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Do not upload game images, extracted assets, generated modules, saves, signing material, device containers, or unreviewed logs.
+        SunPad can fill most of this form for you: choose **••• → Report a Problem… → Report on GitHub** in the app.
+
+        Attach `On My iPhone/iPad → SunPad → Diagnostics → Latest-SunPad-Diagnostic.log` below. If the problem is visual, also attach a screenshot or short video. GitHub issues and attachments are public. Never upload game images, extracted assets, generated modules, saves, signing material, or an entire device container.
+  - type: input
+    id: report-id
+    attributes:
+      label: Report ID
+      description: Filled automatically when this form is opened from SunPad.
+      placeholder: SP-1234ABCD
   - type: input
     id: revision
     attributes:
       label: SunPad revision
-      placeholder: Git commit, branch, or release
+      description: Filled automatically when this form is opened from SunPad.
+      placeholder: App version and build, Git commit, branch, or release
     validations:
       required: true
   - type: dropdown
@@ -25,26 +34,44 @@ body:
         - macOS
     validations:
       required: true
-  - type: dropdown
-    id: experimental-performance-mode
+  - type: input
+    id: performance-profile
     attributes:
-      label: Experimental Performance Mode
-      description: Select the mode used when the problem occurred. The mode applies after restarting SunPad.
-      options:
-        - Disabled
-        - Enabled
-        - Not sure or not available
+      label: Performance profile
+      description: Filled automatically by SunPad. If entering manually, say Stable, Experimental 100%/QoS, 95%/QoS, 90%/QoS, or Not sure.
+      placeholder: Stable 100% / inherited QoS
     validations:
       required: true
   - type: textarea
-    id: behavior
+    id: summary
     attributes:
-      label: What happened?
-      description: Include exact steps, expected behavior, and observed behavior.
+      label: What went wrong?
+      description: A short answer is enough. This is filled automatically from the in-app question.
     validations:
       required: true
-  - type: textarea
-    id: evidence
+  - type: input
+    id: context
     attributes:
-      label: Reviewed evidence
-      description: Paste only the smallest relevant, privacy-reviewed log excerpt.
+      label: Area and what you were doing
+      description: Scene, menu, action, or the moment immediately before the problem.
+  - type: input
+    id: frequency
+    attributes:
+      label: How often did it happen?
+      placeholder: Every time, sometimes, once, or not sure
+  - type: upload
+    id: diagnostic-report
+    attributes:
+      label: SunPad diagnostic report
+      description: Attach `Latest-SunPad-Diagnostic.log` from the SunPad Diagnostics folder. It includes your brief answers, bounded technical context, and current/previous session logs; review it before uploading if you wish.
+    validations:
+      required: false
+      accept: ".log,.txt"
+  - type: upload
+    id: visual-evidence
+    attributes:
+      label: Screenshot or short video
+      description: For visual, layout, rendering, or timing problems, attach the smallest capture that clearly shows the issue.
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.webp,.mov,.mp4"

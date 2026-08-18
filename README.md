@@ -198,11 +198,13 @@ layout is the normalized physical-iPad arrangement accepted on August 11,
 2026. Phone layouts remain independently movable and are unchanged.
 
 The **Controller Button Mapping…** menu is likewise narrow: GameCube A/B/X/Y/Z
-can be assigned one-to-one across the four face buttons and right shoulder,
-with conflicts swapped and a default reset. Sticks, D-pad, Start, left
-shoulder, and analog triggers stay fixed so DualSense trigger pressure is not
-disturbed. Focused mapping and controller-slot tests pass; physical Bluetooth,
-wired, and natural-sleep reconnect acceptance remains open.
+can be assigned one-to-one across the four face buttons and left shoulder,
+with conflicts swapped and a default reset. By default, the left shoulder is Z,
+the right shoulder is a fixed 50% analog-R run-and-spray input, and the right
+trigger retains the strong/full spray path. Sticks, D-pad, Start, the right
+shoulder spray, and analog triggers stay fixed. Focused mapping and
+controller-slot tests pass; physical Bluetooth, wired, and natural-sleep
+reconnect acceptance remains open.
 
 Touch and GameController input merge through the same thread-safe GameCube
 state. Button presses are edge-latched, the strongest stick input wins, and
@@ -342,8 +344,12 @@ single-thread synchronization, reduces the emulated CPU clock to 90%, and uses
 Apple's foreground-game scheduling priority. It may improve performance on
 some iPhones and iPads, but can affect game timing, audio, or physics. It is a
 test option rather than a supported performance guarantee; after reproducing a
-problem, use **••• → Share Diagnostic Log…** and include the device model,
-iOS/iPadOS version, scene, and approximate play duration. A separate default-off
+problem, use **••• → Report a Problem…**. SunPad asks three short questions,
+adds the device, settings, performance, graphics, controller, and bounded
+runtime-warning context, and retains both the current and preceding session in
+one shareable report. The GitHub option pre-fills the matching issue form; for
+visual problems, attach the screenshot and `Latest-SunPad-Diagnostic.log` from
+SunPad's Files-visible `Diagnostics` folder. A separate default-off
 **Experimental 60 FPS (Restart Required)** three-dot-menu option is test-only
 and is known from hands-on physical-iPad testing to be unsuitable for normal
 play. Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD

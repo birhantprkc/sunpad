@@ -23,6 +23,10 @@ fi
 
 grep -Fq -- '-sunpadExperimentalPerformanceMode' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- '-sunpadExperimentalPerformance95' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- '-sunpadExperimentalPerformanceQoSOnly' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- 'SunPadExperimentalPerformanceMode' \
   "$repo_root/apple/shared/SunPadSettings.mm"
 grep -Fq -- 'Experimental Performance Mode (Restart Required)' \
@@ -37,7 +41,15 @@ grep -Fq -- 'Config::SetBase(Config::MAIN_OVERCLOCK, *impl->config.emulated_cpu_
   "$runtime_source"
 grep -Fq -- 'QOS_CLASS_USER_INITIATED' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
-grep -Fq -- 'experimental-single-core-90 cpuVideoSplit=0 emulatedCPUClock=0.90' \
+grep -Fq -- 'experimental-single-core-90' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- 'experimental-single-core-95' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- 'experimental-qos-only-100' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- 'runtime render scale=%ld source=live' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- 'runtime aspect mode=%@ source=%@' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 
 echo "Experimental performance configuration checks passed"

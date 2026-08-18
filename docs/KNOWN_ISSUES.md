@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-08-13
+Last updated: 2026-08-18
 
 ## iOS / iPadOS
 
@@ -95,13 +95,15 @@ Last updated: 2026-08-13
     device filename when a Simulator-generated development plist is present.
 17. **Physical controller remapping is intentionally narrow** — remapping is
     implemented for GameCube A/B/X/Y/Z across the four face buttons and
-    right shoulder. Conflicts swap one-to-one and reset restores defaults.
-    Sticks, D-pad, Start, left shoulder, and analog triggers stay fixed. Source
-    regression tests pass. Controller slots now reconcile against Apple's
-    current-controller enumeration, clear held player-1 input when stale, and
-    reconcile after foreground resume. DualSense pressure, Bluetooth, wired,
-    natural-sleep reconnect, and Apple system-remapping interaction still
-    require hands-on physical acceptance.
+    left shoulder. Conflicts swap one-to-one and reset restores defaults. The
+    default left shoulder is Z; the fixed right shoulder supplies 50% analog R
+    without a digital R click for run-and-spray; the right trigger retains the
+    strong/full path. Sticks, D-pad, Start, and analog triggers stay fixed.
+    Source regression tests pass. Controller slots now reconcile against
+    Apple's current-controller enumeration, clear held player-1 input when
+    stale, and reconcile after foreground resume. The revised shoulder mapping,
+    DualSense pressure, Bluetooth, wired, natural-sleep reconnect, and Apple
+    system-remapping interaction still require hands-on physical acceptance.
 18. **60 FPS is test-only** — Sunshine's confirmed baseline is approximately
     30 FPS. A default-off **Experimental 60 FPS (Restart Required)** menu
     option now exposes the guarded GMSE01 boot path for hands-on testing; the
@@ -129,7 +131,12 @@ Last updated: 2026-08-13
     synchronized single CPU-GPU thread, reduces the emulated CPU clock to 90%,
     and applies `userInitiated` QoS. It produced measurable headroom in two
     confirmed-gameplay iPhone 14 traces at Serious thermal state, but may alter
-    game timing, audio, physics, or scene behavior. The earlier dual-core route
+    game timing, audio, physics, rendering, or scene behavior. A Preview 3
+    report captured severe visual corruption in the Delfino Plaza E.B.S. scene
+    while the 90% profile and 4× EFB (`2560×2112`) were both active. FPS,
+    speed ratio, and nominal thermals did not expose the bad frame. The evidence
+    does not yet distinguish the 90% clock from a clock-plus-4× EFB interaction.
+    The earlier dual-core route
     is rejected because confirmed gameplay produced a FIFO Unknown Opcode from
     CPU/GPU desynchronization. After reproducing a problem, use **••• → Share
     Diagnostic Log…** and include device model, OS version, scene, approximate
