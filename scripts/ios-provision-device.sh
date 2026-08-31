@@ -11,8 +11,8 @@ set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 MG="$ROOT/ref/ModernGekko"
 TPL="$ROOT/ref/ModernGekko-Template"
-IOS_BUILD="$MG/build-ios-iphoneos-public"
-OUT="$ROOT/apple/ios/Provisioned"
+IOS_BUILD="${SUNPAD_IOS_BUILD:-$MG/build-ios-iphoneos-public}"
+OUT="${SUNPAD_PROVISIONED_OUT:-$ROOT/apple/ios/Provisioned}"
 LIBS_DIR="$OUT/iphoneos/libs"
 
 mkdir -p "$LIBS_DIR"
@@ -96,7 +96,7 @@ echo "merged: $LIBS_DIR/libSunPadCore.a"
 # DevGameRoot is unused on a real device (the import flow prefers the extracted
 # root it produces).
 GAME_ROOT="$TPL/extracted/Super-Mario-Sunshine"
-MODULE="/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib"
+MODULE="${SUNPAD_DEVICE_MODULE_PATH:-/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib}"
 cat > "$OUT/dev-config.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

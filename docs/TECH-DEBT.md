@@ -343,7 +343,7 @@ physical device:
 - background/resume and at least one 30-minute sustained session; and
 - a recorded hands-on verdict with exact failures, not only telemetry.
 
-Until then, **Experimental 60 FPS (Restart Required)** remains default-off,
+Until then, **60 FPS Patch (Unstable, Restart Required)** remains default-off,
 warned, and excluded from support claims.
 
 ## Source pointers

@@ -131,12 +131,13 @@ headlessly for verification.
     --destination /tmp/sunpad-app-logs
   ```
 
-- The default-off **Experimental Performance Mode (Restart Required)** retains
+- The default-off **Reduced CPU Clock 90% (Unstable, Restart Required)** retains
   Sunshine's synchronized single CPU-GPU thread, reduces the emulated CPU
   clock to 90%, and assigns `userInitiated` QoS to the host game thread. The
   runtime log records either `experimental-single-core-90` or `stable`, so
-  reports identify the tested profile. The mode may improve headroom on some
-  iPhones and iPads but can change guest timing, audio, or physics. Testers
+  reports identify the tested profile. The diagnostic mode is not a speed
+  boost; physical-iPad testing found it unusably slow, and it can change guest
+  timing, audio, physics, or rendering. Testers
   should reproduce a problem, share the diagnostic log, and report device
   model, OS version, scene, approximate play duration, and observed behavior.
   Changing the option applies on the next launch; the stable profile remains
@@ -195,7 +196,7 @@ expose a VoiceOver setting:
 6. **60 FPS testing.** Any mode is default-off, requires a restart, and is not
    supported until gameplay timing, physics, animation, cutscenes, audio,
    controller polling, save/reload, and a sustained hands-on physical gameplay
-   session pass. The three-dot menu exposes **Experimental 60 FPS (Restart
+   session pass. The three-dot menu exposes **60 FPS Patch (Unstable, Restart
    Required)** and applies changes only on the next launch; original 30 FPS
    remains the default. Although the telemetry/thermal subgate passed, a later
    hands-on physical-iPad test judged the mode unusable for normal play. Keep

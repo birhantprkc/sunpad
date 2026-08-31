@@ -62,6 +62,10 @@ NS_ASSUME_NONNULL_BEGIN
  * changed after launch. */
 - (NSString *)currentPerformanceProfile;
 
+/* Render scale actually applied to this runtime, independent of a stored
+ * setting or a controlled launch override. */
+- (NSInteger)currentRenderScale;
+
 /* Internal (EFB) render resolution, e.g. "640x528". */
 - (NSString *)efbResolution;
 

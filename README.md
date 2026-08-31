@@ -48,7 +48,7 @@ game module.
 | Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
 | Settings | Live 1×–4× render scale, original 4:3 plus experimental widescreen/fill modes, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 5 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 6 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,14 +69,14 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.5-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.5/SunPad-0.1.0-preview.5-unsigned.ipa).
-Preview 5 adds the accepted controller layout: left shoulder for Z, right
-shoulder for a medium-pressure run-and-spray stream, and right trigger for the
-strong stream. **Report a Problem…** now asks three short questions, exports a
-privacy-bounded diagnostic report with richer runtime and graphics evidence,
-and opens a matching GitHub issue form. Experimental Performance Mode remains
-default-off and now records explicit comparison profiles and visual diagnostics;
-stable performance behavior remains the default.
+[`SunPad-0.1.0-preview.6-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.6/SunPad-0.1.0-preview.6-unsigned.ipa).
+Preview 6 regenerates the executable module with corrected Gekko
+floating-point and paired-register handling as the leading candidate for the
+reported warped-model problem. It also resets both unstable experiments off
+once when upgrading, adds a one-step **Use Supported 30 FPS Mode** recovery
+action, and clearly labels both experiments as diagnostic options that are not
+for normal play. Diagnostic reports now distinguish stored settings from the
+render scale actually active in the running game.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -306,7 +306,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 5** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 6** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game
@@ -336,23 +336,25 @@ No save belongs in Git or a release artifact.
 ### Is everything finished?
 
 No. The current build is playable and useful for development testing, but
-physical-device audio re-acceptance, iPhone performance, broader scene
+physical-device audio re-acceptance, iPhone performance, reporter confirmation
+of the warped-model candidate, broader scene
 coverage, physical lifecycle/save acceptance, compressed image support, and
 broader macOS gameplay acceptance remain explicit work. A default-off
-**Experimental Performance Mode (Restart Required)** keeps Sunshine's
-single-thread synchronization, reduces the emulated CPU clock to 90%, and uses
-Apple's foreground-game scheduling priority. It may improve performance on
-some iPhones and iPads, but can affect game timing, audio, or physics. It is a
-test option rather than a supported performance guarantee; after reproducing a
-problem, use **••• → Report a Problem…**. SunPad asks three short questions,
+**Reduced CPU Clock 90% (Unstable, Restart Required)** keeps Sunshine's
+single-thread synchronization but deliberately lowers the emulated CPU clock.
+It is a diagnostic option, not a speed boost, and physical-iPad testing found
+it unusably slow. It can also affect game timing, audio, physics, or rendering.
+Use **••• → Unstable Experiments → Use Supported 30 FPS Mode** to turn both
+experiments off for the next launch. After reproducing a problem, use
+**••• → Report a Problem…**. SunPad asks three short questions,
 adds the device, settings, performance, graphics, controller, and bounded
 runtime-warning context, and retains both the current and preceding session in
 one shareable report. The GitHub option pre-fills the matching issue form; for
 visual problems, attach the screenshot and `Latest-SunPad-Diagnostic.log` from
 SunPad's Files-visible `Diagnostics` folder. A separate default-off
-**Experimental 60 FPS (Restart Required)** three-dot-menu option is test-only
-and is known from hands-on physical-iPad testing to be unsuitable for normal
-play. Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD
+**60 FPS Patch (Unstable, Restart Required)** option is diagnostic-only and is
+known from hands-on physical-iPad testing to be unsuitable for normal play.
+Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD
 textures, Vision Pro, Apple TV, and Eclipse/general mod support remain backlog
 research rather than promised features.
 

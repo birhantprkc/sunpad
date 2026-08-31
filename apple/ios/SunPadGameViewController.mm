@@ -482,7 +482,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
                  @"thermal=%@ lowPower=%d appCPU=%.1f residentMiB=%.1f topThreads=%@",
                       fps, [_coreHost currentVPS], [_coreHost currentSpeed],
                       [_coreHost efbResolution],
-                      (long)[SunPadSettings sharedSettings].renderScale,
+                      (long)[_coreHost currentRenderScale],
                       (long)[SunPadSettings sharedSettings].aspectRatioMode,
                       SunPadThermalStateName(processInfo.thermalState),
                       processInfo.isLowPowerModeEnabled, appCPUPercent, residentMiB,
@@ -1068,7 +1068,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
         @"appVersion=%@ build=%@\n"
          @"platform=%@ os=%@\n"
          @"screen=%@ native=%@ drawable=%@\n"
-         @"settings renderScale=%ld aspect=%ld experimentalPerformance=%d experimental60FPS=%d\n"
+         @"storedSettings renderScale=%ld aspect=%ld experimentalPerformance=%d experimental60FPS=%d\n"
          @"controllers count=%lu names=%@\n"
          @"recentScreenshot=%@\n"
          @"performance %@\n%@",

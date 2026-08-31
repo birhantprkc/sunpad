@@ -462,7 +462,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     fpsAction.state = settings.showFPSCounter ? UIMenuElementStateOn : UIMenuElementStateOff;
 
     UIAction *sixtyFPSAction =
-        [UIAction actionWithTitle:@"Experimental 60 FPS (Restart Required)"
+        [UIAction actionWithTitle:@"60 FPS Patch (Unstable, Restart Required)"
                             image:[UIImage systemImageNamed:@"speedometer"]
                        identifier:nil handler:^(__kindof UIAction *action) {
         (void)action;
@@ -472,15 +472,12 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
         [weakSelf refreshMenuButton];
 
-        NSString *nextMode = currentSettings.experimental60FPS ?
-            @"experimental 60 FPS" : @"the original 30 FPS mode";
-        NSString *warning = currentSettings.experimental60FPS ?
-            @"Experimental 60 FPS is known to be unsuitable for normal play. " : @"";
+        NSString *message = currentSettings.experimental60FPS ?
+            @"This patch is diagnostic only. It is not a performance boost and is known to be unsuitable for normal play. It can cause severe slowdown and game-timing, physics, animation, or audio problems. Close and reopen SunPad to enable it." :
+            @"The supported original 30 FPS mode is selected. Close and reopen SunPad to apply it.";
         UIAlertController *alert =
             [UIAlertController alertControllerWithTitle:@"Restart Required"
-                                                message:[NSString stringWithFormat:
-                @"%@This change applies the next time SunPad launches. Close and reopen the app to use %@.",
-                warning, nextMode]
+                                                message:message
                                          preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK"
                                                   style:UIAlertActionStyleDefault
@@ -493,7 +490,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         UIMenuElementStateOn : UIMenuElementStateOff;
 
     UIAction *performanceAction =
-        [UIAction actionWithTitle:@"Experimental Performance Mode (Restart Required)"
+        [UIAction actionWithTitle:@"Reduced CPU Clock 90% (Unstable, Restart Required)"
                             image:[UIImage systemImageNamed:@"gauge.with.dots.needle.67percent"]
                        identifier:nil handler:^(__kindof UIAction *action) {
         (void)action;
@@ -504,15 +501,12 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
         [weakSelf refreshMenuButton];
 
-        NSString *nextMode = currentSettings.experimentalPerformanceMode ?
-            @"experimental performance mode" : @"the stable performance mode";
-        NSString *warning = currentSettings.experimentalPerformanceMode ?
-            @"This mode keeps Sunshine synchronized but reduces the emulated CPU clock to 90%. It may improve performance on some devices, but can affect game timing, audio, physics, or rendering. Severe visual corruption has been reported at 4×; use 1× or 2× while this interaction is investigated. If you encounter a problem, reproduce it and use Report a Problem from this menu. " : @"";
+        NSString *message = currentSettings.experimentalPerformanceMode ?
+            @"This diagnostic mode reduces the emulated CPU clock. It is not a speed boost and can make Sunshine much slower. Severe rendering corruption has been reported while it is enabled. Close and reopen SunPad to enable it." :
+            @"The supported full CPU clock is selected. Close and reopen SunPad to apply it.";
         UIAlertController *alert =
             [UIAlertController alertControllerWithTitle:@"Restart Required"
-                                                message:[NSString stringWithFormat:
-                @"%@This change applies the next time SunPad launches. Close and reopen the app to use %@.",
-                warning, nextMode]
+                                                message:message
                                          preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK"
                                                   style:UIAlertActionStyleDefault
@@ -523,6 +517,53 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     }];
     performanceAction.state = settings.experimentalPerformanceMode ?
         UIMenuElementStateOn : UIMenuElementStateOff;
+
+    BOOL supportedModeSelected = !settings.experimentalPerformanceMode &&
+        !settings.experimental60FPS;
+    UIAction *supportedModeAction =
+        [UIAction actionWithTitle:@"Use Supported 30 FPS Mode (Restart Required)"
+                            image:[UIImage systemImageNamed:@"checkmark.shield"]
+                       identifier:nil handler:^(__kindof UIAction *action) {
+        (void)action;
+        SunPadSettings *currentSettings = [SunPadSettings sharedSettings];
+        BOOL changed = currentSettings.experimentalPerformanceMode ||
+            currentSettings.experimental60FPS;
+        currentSettings.experimentalPerformanceMode = NO;
+        currentSettings.experimental60FPS = NO;
+        [currentSettings synchronize];
+        [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
+        [weakSelf refreshMenuButton];
+
+        UIAlertController *alert = [UIAlertController
+            alertControllerWithTitle:changed ? @"Supported Mode Selected" : @"Supported Mode Active"
+                             message:changed ?
+                @"Full CPU clock and the original 30 FPS mode are selected. Close and reopen SunPad to apply them." :
+                @"Full CPU clock and the original 30 FPS mode are already selected."
+                      preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                  style:UIAlertActionStyleDefault
+                                                handler:nil]];
+        [weakSelf.window.rootViewController presentViewController:alert
+                                                         animated:YES
+                                                       completion:nil];
+    }];
+    supportedModeAction.state = supportedModeSelected ?
+        UIMenuElementStateOn : UIMenuElementStateOff;
+
+    NSString *experimentsTitle = supportedModeSelected ?
+        @"Unstable Experiments (Off)" : @"⚠︎ Unstable Experiments Enabled";
+    UIMenu *experimentsMenu = [UIMenu menuWithTitle:experimentsTitle
+                                              image:[UIImage systemImageNamed:@"exclamationmark.triangle"]
+                                         identifier:nil
+                                            options:UIMenuOptionsDisplayInline
+                                           children:@[
+        supportedModeAction,
+        [UIMenu menuWithTitle:@"Diagnostic Options, Not for Normal Play"
+                         image:[UIImage systemImageNamed:@"wrench.and.screwdriver"]
+                    identifier:nil
+                       options:0
+                      children:@[performanceAction, sixtyFPSAction]],
+    ]];
 
     UIAction *reportProblemAction =
         [UIAction actionWithTitle:@"Report a Problem…"
@@ -536,8 +577,7 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         renderMenu,
         aspectMenu,
         fpsAction,
-        performanceAction,
-        sixtyFPSAction,
+        experimentsMenu,
         [UIAction actionWithTitle:@"Controller Button Mapping…"
                             image:[UIImage systemImageNamed:@"gamecontroller"]
                        identifier:nil handler:^(__kindof UIAction *action) {

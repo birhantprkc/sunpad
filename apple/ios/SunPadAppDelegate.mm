@@ -3,6 +3,7 @@
 
 #import "SunPadDiagnostics.h"
 #import "SunPadGameViewController.h"
+#import "SunPadSettings.h"
 
 @interface SunPadAppDelegate : UIResponder <UIApplicationDelegate>
 @property(nonatomic, strong) UIWindow *window;
@@ -32,6 +33,25 @@ static void SunPadRestorePreferencesIfRequested(void) {
     SunPadLog(@"preferences restored keys=%lu", (unsigned long)restored.count);
 }
 
+static void SunPadApplyExperimentSafetyMigration(void) {
+    static NSInteger const kSafetyResetVersion = 1;
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    NSInteger appliedVersion = [defaults integerForKey:@"SunPadExperimentSafetyResetVersion"];
+    if (appliedVersion >= kSafetyResetVersion)
+        return;
+
+    SunPadSettings *settings = [SunPadSettings sharedSettings];
+    BOOL performanceWasEnabled = settings.experimentalPerformanceMode;
+    BOOL sixtyFPSWasEnabled = settings.experimental60FPS;
+    settings.experimentalPerformanceMode = NO;
+    settings.experimental60FPS = NO;
+    [defaults setInteger:kSafetyResetVersion forKey:@"SunPadExperimentSafetyResetVersion"];
+    [settings synchronize];
+    SunPadLog(@"experiment safety migration version=%ld performanceWasEnabled=%d "
+              "sixtyFPSWasEnabled=%d result=supported-default",
+              (long)kSafetyResetVersion, performanceWasEnabled, sixtyFPSWasEnabled);
+}
+
 @implementation SunPadAppDelegate
 
 - (UIInterfaceOrientationMask)application:(UIApplication *)application
@@ -49,6 +69,7 @@ static void SunPadRestorePreferencesIfRequested(void) {
 
     SunPadDiagnosticsStart();
     SunPadRestorePreferencesIfRequested();
+    SunPadApplyExperimentSafetyMigration();
     self.saveFlushTask = UIBackgroundTaskInvalid;
     UIScreen *screen = UIScreen.mainScreen;
     SunPadLog(@"launch screen bounds=%@ nativeBounds=%@ scale=%.2f nativeScale=%.2f maxFPS=%ld",

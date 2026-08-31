@@ -25,9 +25,15 @@ grep -Fq -- '-sunpadExperimental60FPS' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- 'SunPadExperimental60FPS' \
   "$repo_root/apple/shared/SunPadSettings.mm"
-grep -Fq -- 'Experimental 60 FPS (Restart Required)' \
+grep -Fq -- '60 FPS Patch (Unstable, Restart Required)' \
+  "$repo_root/apple/ios/SunPadGameOverlay.mm"
+grep -Fq -- 'It is not a performance boost and is known to be unsuitable for normal play.' \
+  "$repo_root/apple/ios/SunPadGameOverlay.mm"
+grep -Fq -- 'Use Supported 30 FPS Mode (Restart Required)' \
   "$repo_root/apple/ios/SunPadGameOverlay.mm"
 grep -Fq -- 'menuPreference60FPS' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- '!stableBaseline && (launchArgument60FPS || menuPreference60FPS)' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- 'impl->metadata.disc_id != "GMSE01"' \
   "$runtime_source"
