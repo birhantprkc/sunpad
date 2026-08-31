@@ -27,10 +27,24 @@ grep -Fq -- '-sunpadExperimentalPerformance95' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- '-sunpadExperimentalPerformanceQoSOnly' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- '-sunpadStableBaseline' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- '!stableBaseline &&' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
+grep -Fq -- 'stableBaseline ? 1 :' \
+  "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- 'SunPadExperimentalPerformanceMode' \
   "$repo_root/apple/shared/SunPadSettings.mm"
-grep -Fq -- 'Experimental Performance Mode (Restart Required)' \
+grep -Fq -- 'Reduced CPU Clock 90% (Unstable, Restart Required)' \
   "$repo_root/apple/ios/SunPadGameOverlay.mm"
+grep -Fq -- 'It is not a speed boost and can make Sunshine much slower.' \
+  "$repo_root/apple/ios/SunPadGameOverlay.mm"
+grep -Fq -- 'Use Supported 30 FPS Mode (Restart Required)' \
+  "$repo_root/apple/ios/SunPadGameOverlay.mm"
+grep -Fq -- 'SunPadExperimentSafetyResetVersion' \
+  "$repo_root/apple/ios/SunPadAppDelegate.mm"
+grep -Fq -- 'result=supported-default' \
+  "$repo_root/apple/ios/SunPadAppDelegate.mm"
 if grep -Fq -- 'Config::SetBase(Config::MAIN_CPU_THREAD, true);' "$runtime_source"; then
   echo "Rejected dual-core performance path is still present" >&2
   exit 1

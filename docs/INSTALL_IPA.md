@@ -1,18 +1,18 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 5 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 6 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 5 maps left shoulder to Z, right shoulder to a medium-pressure
-run-and-spray stream, and right trigger to the strong stream. **Report a
-Problem…** asks three short questions, exports a bounded diagnostic report, and
-opens the matching GitHub issue form. The default-off **Experimental
-Performance Mode (Restart Required)** remains a test option and may affect game
-timing, audio, physics, or rendering; stable mode remains the default.
+Preview 6 regenerates the executable module with corrected floating-point and
+paired-register handling as the leading candidate for the reported warped-model
+problem. On the first Preview 6 launch, both unstable experiments are reset
+off. **••• → Unstable Experiments → Use Supported 30 FPS Mode** restores the
+supported full CPU clock and original 30 FPS mode for the next launch. The two
+individual diagnostic options are not intended for normal play.
 
 1. Download
-   [`SunPad-0.1.0-preview.5-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.5/SunPad-0.1.0-preview.5-unsigned.ipa)
-   from the [Preview 5 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.5).
+   [`SunPad-0.1.0-preview.6-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.6/SunPad-0.1.0-preview.6-unsigned.ipa)
+   from the [Preview 6 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.6).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

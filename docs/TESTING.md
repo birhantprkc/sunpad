@@ -240,6 +240,62 @@ run-and-spray, the strong right-trigger stream, guided report entry/export, and
 the prefilled GitHub issue handoff. The controller connection method, render
 scale, and session duration were not recorded in that acceptance pass.
 
+The August 30 build-4 warping candidate replaces Preview 5's stale generated
+GMSE01 floating-point code with output from the pinned corrected DolRecomp. The
+old module contained 24,303 direct host-float assignments; the regenerated
+module contains none and instead emits the Gekko-aware scalar, paired-single,
+FPSCR, and quantized-load/store helpers. All 16 upstream generator tests passed,
+the full 221-chunk module and iPhoneOS runtime built for arm64, the repository
+gate passed, and `scripts/package-ios.sh` produced an audited unsigned candidate
+at `/private/tmp/sunpad-warpfix.D0raNn/SunPad-warpfix-candidate-unsigned.ipa`
+with SHA-256
+`0759c68361b3d2c1105f95afa5090c53a196036b8c4d46f9943368acf3449f41`.
+The module SHA-256 is
+`070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
+These are private local build artifacts, not a release or physical-gameplay
+acceptance result. Validate the original failing scene at 30 FPS / 1× before
+reintroducing Reduced CPU Clock 90% or 4× EFB.
+
+On August 31, hands-on testing with the connected controller confirmed that
+the reduced-CPU option was unusably slow. With both unstable experiments off,
+the game was usable in supported original 30 FPS mode at 2×, and switching to
+4× did not reproduce bizarre rendering before returning to 2×. This does not
+cover the reporter's exact save-selection scene. Preview 6 resets both
+experiments off once on upgrade, groups them under an explicit unstable menu,
+and adds a supported-mode recovery action.
+
+The signed build-4 candidate was installed in place on the physical iPad Pro
+(iPad14,5) after backing up the recognized GCI, preferences, controller
+configuration, and logs. The pre-install GCI SHA-256 remained the previously
+accepted `a8f5ea47227478c9acc010f9ba99fe5a0c493ff2e044c1f56b6a8952badce932`.
+CoreDevice repeatedly timed out copying the larger corrected module into the
+temporary container, so the local device candidate embeds it under a unique
+build-4 filename while retaining its independent code signature. Live console
+evidence confirmed that exact bundled path loaded, with `moduleBytes=89967168`,
+and reached `runtime created`. A new non-persistent
+`-sunpadStableBaseline` launch argument overrode the persisted experiments for
+the acceptance run: original 30 FPS, 100% emulated CPU clock, inherited QoS,
+and 1× EFB (`640×528`). Samples held 29.9–30.0 FPS at 0.998–1.004 speed ratio
+and nominal thermals. A 1-minute-56-second local QuickTime capture remained at
+the title splash and therefore provides no gameplay or E.B.S. visual acceptance.
+
+The August 31 Preview 6 release candidate was then rebuilt from clean pinned
+ModernGekko, RecompCore, and DolRecomp checkouts. The generated-code audit
+rejected the old active Preview 5 source before compilation; the corrected
+221-chunk source passed and reproduced the module SHA-256
+`070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
+The arm64 iPhoneOS core, unsigned Release app, repository gate, and package
+audit passed. Two independent IPAs were byte-identical at 26,461,394 bytes and
+SHA-256 `acdd9206ee1ac470f57e936729c604742156b9512972beda8de0fd717e4e451d`.
+The signed app and independently signed corrected module were installed in
+place on the connected iPad. Launch logs recorded build 4, stable full-clock
+mode, original 30 FPS, the one-time experiment safety migration, the retained
+Xbox controller, readable imported image/game root, and the bundled module's
+presence. Automated launch was backgrounded before runtime creation, so this is
+not a second gameplay acceptance pass. The recognized GCI was backed up before
+installation and read back byte-identical afterward at SHA-256
+`a8f5ea47227478c9acc010f9ba99fe5a0c493ff2e044c1f56b6a8952badce932`.
+
 | Area | Current state | Required acceptance |
 |---|---|---|
 | Loading polish | Visual iPad-Simulator pass: honest phases appeared before game output; first output hid the presentation; an invalid-module copy stopped the indicator and showed a readable rejection alert; reinstalling the untouched build rendered again. Host accessibility inspection exposes the standard controls and analog R value. Signed iPhoneOS build and in-place device launch also passed; physical-device VoiceOver observation remains open because this Simulator image does not expose VoiceOver | Cold/warm launch shows each honest phase as applicable; no unexplained black wait or synthetic percentage; first measured frame hides indicator and label; missing data and runtime errors stop the indicator and remain readable; VoiceOver label matches the visible phase |
@@ -247,7 +303,7 @@ scale, and session duration were not recorded in that acceptance pass.
 | Grouped D-pad layout | Physical-iPad move/resize and gameplay accepted; it is the single standard D-pad layout path | Four directions move/resize/reset as one group; directional hit regions and rolling-direction behavior stay unchanged; compact-iPhone layout pass remains open |
 | Analog R touch | Physical-iPad animation, run-and-spray, pressure adjustment, continuous tracking, and full-pressure behavior accepted; it is the single standard R path | Accepted normalized position is the large-iPad default; minimum and maximum edge clamping and final-quarter haptic remain stable; compact-iPhone layout and gameplay pass remains open |
 | Controller reconnect and mapping | Deterministic slot/reconciliation, missed-removal, held-input-release, mapping/persistence, foreground-resume, simulator GameController assignment, and simulator foreground-retention tests passed; physical-iPad gameplay accepted left-shoulder Z, fixed right-shoulder 50% analog-R run-and-spray, and the strong right-trigger stream | Bluetooth versus wired was not recorded for the accepted mapping pass. Natural-sleep, player 1 retention/reclaim, two-controller preservation, disconnect release, active reconnect, foreground reconnect, touch hiding, remapping, and Modern C-stick behavior remain open on hardware |
-| 60 FPS | A default-off **Experimental 60 FPS (Restart Required)** three-dot-menu option persists the next-launch boot mode; original 30 FPS remains the default. A 14-minute-49-second physical-iPad telemetry pass held 59.7–60.0 FPS near real-time speed at 2× and nominal thermals except one recovered 42.1 FPS / 0.897 sample; the only two SMC demotions map exactly to the intentional Gecko code patches; returning to 30 FPS preserved save/preferences. A subsequent hands-on physical-iPad test judged the mode unusable for normal play | Keep the mode default-off, restart-required, visibly experimental, and excluded from support claims. If revisited, capture the specific gameplay timing, physics, animation, cutscene, audio, controller, save/reload, memory, and graceful-shutdown failures before changing the patch |
+| 60 FPS | A default-off **60 FPS Patch (Unstable, Restart Required)** three-dot-menu option persists the next-launch boot mode; original 30 FPS remains the default. A 14-minute-49-second physical-iPad telemetry pass held 59.7–60.0 FPS near real-time speed at 2× and nominal thermals except one recovered 42.1 FPS / 0.897 sample; the only two SMC demotions map exactly to the intentional Gecko code patches; returning to 30 FPS preserved save/preferences. A subsequent hands-on physical-iPad test judged the mode unusable for normal play. Preview 6 resets the option off once on upgrade | Keep the mode default-off, restart-required, visibly unstable, and excluded from support claims. If revisited, capture the specific gameplay timing, physics, animation, cutscene, audio, controller, save/reload, memory, and graceful-shutdown failures before changing the patch |
 | iPad/iPhone slowdown | August 13 physical-iPhone 14 captures at native 1× reproduced both nominal-thermal 25.7–27.1 FPS / 0.872–0.910 speed and serious-thermal 23.0–25.9 FPS / 0.785–0.875 speed. Low Power Mode stayed off. A weighted CPU profile attributed 17.8% of sampled CPU cycles to the GameCube scheduler wait loop at `80348814`; the retained idle hint reduced that loop to 1.7%. A DOL-only resolver bypass also removed inappropriate native-address resolution work for this zero-REL module. These changes improved headroom but did not eliminate the single-core ceiling. Synchronous shaders, a cache-control shortcut, and other visually corrupting routes were rejected. Game Mode availability is confirmed, but no controlled on/off result proves a material gain. QoS-only kept the combined thread on performance cores but degraded in confirmed workload to 22.0–27.7 FPS / 0.797–0.969 speed with the thread around 92.6–96%. Dual-core variants improved burst performance but are rejected: during confirmed gameplay Dolphin emitted a FIFO Unknown Opcode caused by CPU/GPU desynchronization, after which Video-thread work collapsed while FPS/speed counters remained misleadingly healthy. A final 90% emulated-clock, single-core, `userInitiated` profile removed the separate Video thread and measured 77.1% and later 58.8% combined-thread utilization in two confirmed-gameplay traces, both entirely at Serious thermal state, with the same PID alive and no desync signature. A later Preview 3 report captured severe Delfino Plaza E.B.S. visual corruption with that profile at 4× EFB while FPS/speed remained plausible. The original module, controls, ISO, and save remained in use | Never ship Sunshine with the CPU/video split. Keep the public experiment default-off. Fresh-launch the same E.B.S. scene with stable 100%/inherited, 100%/QoS, 95%/QoS, and 90%/QoS profiles at Original 4:3 and both 1× and 4×. Accept a replacement candidate only after normal rendering, audio, movement, physics, shadows, water, props, save/load, screenshot/background recovery, and a longer representative route pass |
 | LiveContainer | Unverified; one failure report with no environment or error evidence. Current upstream-source review shows recursive 64-bit Mach-O signing and guest `NSBundle.mainBundle` redirection; the audited candidate contains the module and its relative name, so no package-layout defect is proven | Exact IPA/hash, LiveContainer version/source, device/OS, signing/JIT settings, JIT-less diagnostic and Force Re-sign result, app and nested-module signature evidence, visible launch/error, LiveContainer output, SunPad log, and comparison with a normal re-signed install |
 | Wii U adapter / HD textures / Vision Pro / Apple TV / Eclipse or mods | Backlog research | Separate feasibility result and legal/data boundary before implementation; no generic Dolphin/GameController capability counts as SunPad runtime acceptance |

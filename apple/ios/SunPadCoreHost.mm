@@ -70,6 +70,7 @@ static void SunPadRuntimeLogCallback(
     NSString *_activePerformanceProfile;
     NSString *_activePerformanceSource;
     NSString *_activeFrameMode;
+    NSInteger _activeRenderScale;
     unsigned long long _moduleFileSize;
 }
 
@@ -93,6 +94,7 @@ static void SunPadRuntimeLogCallback(
         _activePerformanceProfile = @"not started";
         _activePerformanceSource = @"none";
         _activeFrameMode = @"not started";
+        _activeRenderScale = 1;
         _moduleFileSize = 0;
         [[NSNotificationCenter defaultCenter]
             addObserver:self
@@ -207,11 +209,13 @@ static void SunPadRuntimeLogCallback(
         config.headless = false;
         config.show_fps_in_title = false;
         config.log_callback = SunPadRuntimeLogCallback;
-        BOOL launchArgument60FPS =
-            [NSProcessInfo.processInfo.arguments containsObject:@"-sunpadExperimental60FPS"];
-        BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
-        config.enable_gmse01_60fps = launchArgument60FPS || menuPreference60FPS;
         NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
+        BOOL stableBaseline = [arguments containsObject:@"-sunpadStableBaseline"];
+        BOOL launchArgument60FPS =
+            [arguments containsObject:@"-sunpadExperimental60FPS"];
+        BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
+        config.enable_gmse01_60fps =
+            !stableBaseline && (launchArgument60FPS || menuPreference60FPS);
         BOOL launchArgumentPerformance90 = [arguments
             containsObject:@"-sunpadExperimentalPerformanceMode"];
         BOOL launchArgumentPerformance95 = [arguments
@@ -222,19 +226,21 @@ static void SunPadRuntimeLogCallback(
             [SunPadSettings sharedSettings].experimentalPerformanceMode;
 
         NSString *performanceProfile = @"stable";
-        NSString *performanceSource = @"default";
+        NSString *performanceSource = stableBaseline ?
+            @"stable baseline launch argument" : @"default";
         float emulatedCPUClock = 1.00f;
         BOOL useExperimentalQoS = NO;
-        if (launchArgumentPerformanceQoSOnly) {
+        if (!stableBaseline && launchArgumentPerformanceQoSOnly) {
             performanceProfile = @"experimental-qos-only-100";
             performanceSource = @"launch argument";
             useExperimentalQoS = YES;
-        } else if (launchArgumentPerformance95) {
+        } else if (!stableBaseline && launchArgumentPerformance95) {
             performanceProfile = @"experimental-single-core-95";
             performanceSource = @"launch argument";
             emulatedCPUClock = 0.95f;
             useExperimentalQoS = YES;
-        } else if (launchArgumentPerformance90 || menuPreferencePerformance) {
+        } else if (!stableBaseline &&
+                   (launchArgumentPerformance90 || menuPreferencePerformance)) {
             performanceProfile = @"experimental-single-core-90";
             performanceSource = launchArgumentPerformance90 ?
                 @"launch argument" : @"menu preference";
@@ -251,7 +257,8 @@ static void SunPadRuntimeLogCallback(
             SunPadLog(@"runtime performance profile=%@ cpuVideoSplit=0 emulatedCPUClock=%.2f gameThreadQoS=userInitiated qosResult=%d source=%@",
                       performanceProfile, emulatedCPUClock, qosResult, performanceSource);
         } else {
-            SunPadLog(@"runtime performance profile=stable cpuVideoSplit=0 emulatedCPUClock=1.00 gameThreadQoS=inherited source=default");
+            SunPadLog(@"runtime performance profile=stable cpuVideoSplit=0 emulatedCPUClock=1.00 gameThreadQoS=inherited source=%@",
+                      performanceSource);
         }
         @synchronized (self) {
             _activePerformanceProfile = performanceProfile;
@@ -261,8 +268,9 @@ static void SunPadRuntimeLogCallback(
         config.module = moderngekko::ModuleSource::DynamicPath(
             modulePath.fileSystemRepresentation);
 
-        NSString *frameModeSource = launchArgument60FPS ? @"launch argument" :
-            (menuPreference60FPS ? @"menu preference" : @"default");
+        NSString *frameModeSource = stableBaseline ? @"stable baseline launch argument" :
+            (launchArgument60FPS ? @"launch argument" :
+             (menuPreference60FPS ? @"menu preference" : @"default"));
         @synchronized (self) {
             _activeFrameMode = config.enable_gmse01_60fps ?
                 @"experimental-60-fps" : @"original-30-fps";
@@ -307,10 +315,15 @@ static void SunPadRuntimeLogCallback(
         NSNumber *savedScaleValue =
             [[NSUserDefaults standardUserDefaults] objectForKey:@"SunPadRenderScale"];
         NSInteger savedScale = savedScaleValue ? savedScaleValue.integerValue : 1;
-        NSInteger clampedSavedScale = savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale);
+        NSInteger clampedSavedScale = stableBaseline ? 1 :
+            (savedScale < 1 ? 1 : (savedScale > 4 ? 4 : savedScale));
         Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clampedSavedScale));
         Config::SetCurrent(Config::GFX_MAX_EFB_SCALE, 12);
-        SunPadLog(@"runtime render scale=%ld source=persisted", (long)clampedSavedScale);
+        @synchronized (self) {
+            _activeRenderScale = clampedSavedScale;
+        }
+        SunPadLog(@"runtime render scale=%ld source=%@", (long)clampedSavedScale,
+                  stableBaseline ? @"stable baseline launch argument" : @"persisted");
 
         NSNumber *savedAspectValue = [[NSUserDefaults standardUserDefaults]
             objectForKey:@"SunPadAspectRatioMode"];
@@ -391,6 +404,9 @@ static void SunPadRuntimeLogCallback(
     // Config::SetCurrent is mutex-protected and the video backend refreshes
     // g_ActiveConfig on the next config callback.
     Config::SetCurrent(Config::GFX_EFB_SCALE, static_cast<int>(clamped));
+    @synchronized (self) {
+        _activeRenderScale = clamped;
+    }
     SunPadLog(@"runtime render scale=%ld source=live", (long)clamped);
 }
 
@@ -452,6 +468,12 @@ static void SunPadRuntimeLogCallback(
     }
 }
 
+- (NSInteger)currentRenderScale {
+    @synchronized (self) {
+        return _activeRenderScale;
+    }
+}
+
 - (NSString *)efbResolution {
     if (!_running->load())
         return @"";
@@ -472,14 +494,16 @@ static void SunPadRuntimeLogCallback(
     NSString *profile;
     NSString *profileSource;
     NSString *frameMode;
+    NSInteger renderScale;
     @synchronized (self) {
         profile = _activePerformanceProfile;
         profileSource = _activePerformanceSource;
         frameMode = _activeFrameMode;
+        renderScale = _activeRenderScale;
     }
     return [NSString stringWithFormat:
         @"runtimeState=%@ paused=%d audioInterrupted=%d\n"
-         @"performanceProfile=%@ profileSource=%@ frameMode=%@\n"
+         @"performanceProfile=%@ profileSource=%@ frameMode=%@ activeRenderScale=%ld\n"
          @"metalDevice=%@ moduleBytes=%llu\n"
          @"graphics frames=%llu projectionHash=%016llx draws=%u primitives=%u "
          @"bpLoads=%u cpLoads=%u xfLoads=%u shaderChanges=%u scissors=%u\n"
@@ -489,6 +513,7 @@ static void SunPadRuntimeLogCallback(
             (_running->load() ? @"running-without-handle" : @"stopped")),
         _runtimePausedForSystemEvent, _audioInterrupted,
         profile ?: @"unknown", profileSource ?: @"unknown", frameMode ?: @"unknown",
+        (long)renderScale,
         _layer.device.name ?: @"unknown", _moduleFileSize,
         diagnostics.frame_count, diagnostics.projection_hash,
         diagnostics.draw_calls, diagnostics.primitives,

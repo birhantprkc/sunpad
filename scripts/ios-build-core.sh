@@ -22,6 +22,7 @@ CMAKE_COMMON=(
   -DCMAKE_SYSTEM_PROCESSOR=arm64
   -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0
   -DCMAKE_BUILD_TYPE=Release
+  -DUSE_SYSTEM_FMT=OFF
   -DENABLE_QT=OFF -DENABLE_TESTS=OFF
   -DUSE_DISCORD_PRESENCE=OFF -DUSE_MGBA=OFF
   -DUSE_RETRO_ACHIEVEMENTS=OFF -DENABLE_AUTOUPDATE=OFF
@@ -57,6 +58,7 @@ if [[ ! -f "$GEN/generated.c" || ! -f "$GEN/generated.h" ]]; then
   echo "prepared module sources missing; run scripts/prepare-game.sh first" >&2
   exit 1
 fi
+"$ROOT/scripts/audit-generated-gmse01.sh" "$GEN"
 if [[ ! -f "$GEN/main.dol" ]]; then
   cp "$TPL/extracted/Super-Mario-Sunshine/sys/main.dol" "$GEN/main.dol"
 fi

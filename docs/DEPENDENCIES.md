@@ -1,6 +1,6 @@
 # Dependencies
 
-Last updated: 2026-08-09
+Last updated: 2026-08-31
 
 ## Host toolchain (verified on this machine)
 
@@ -20,10 +20,10 @@ Last updated: 2026-08-09
 
 | Component | URL | Local path | Pinned revision | License | Purpose |
 |---|---|---|---|---|---|
-| ModernGekko | https://github.com/ExpansionPak/ModernGekko | `ref/ModernGekko` | `048c426ba3db0369e40826d22ad3adcce7fe7c58` | GPL-3.0 | GameCube/Wii recomp runtime (Dolphin-derived) |
-| ModernGekko vendor dolphin/RecompCore branch | https://github.com/ExpansionPak/RecompCore (`moderngekko-vendor`) | `ref/ModernGekko/vendor/dolphin` | `e13ab348f13cd67879f6db6e9d7185410f8f62c6` | Dolphin-derived / mixed | Vendored runtime core used by ModernGekko |
+| ModernGekko | https://github.com/ExpansionPak/ModernGekko | `ref/ModernGekko` | `0514d9f03f8602809f66fc92fdca87d30e752997` | GPL-3.0 | GameCube/Wii recomp runtime (Dolphin-derived) |
+| ModernGekko vendor dolphin/RecompCore branch | https://github.com/ExpansionPak/RecompCore (`moderngekko-vendor`) | `ref/ModernGekko/vendor/dolphin` | `13e492094902644b0d113c586300d358640f9e19` | Dolphin-derived / mixed | Vendored runtime core used by ModernGekko |
 | ModernGekko-Template | https://github.com/ExpansionPak/ModernGekko-Template | `ref/ModernGekko-Template` | `1ee85bb5e09c38f493a09f5fa6e9dc8228b23e42` | none declared in GitHub metadata | Reproducible extract/recompile/run Makefile pipeline |
-| DolRecomp | https://github.com/ExpansionPak/DolRecomp | `ref/ModernGekko/vendor/dolphin/DolRecomp` | `93b881c8f73df1d64a88491f2aa50c7c9ed2384d` | GPL-3.0 | Recursively pinned static PowerPC recompiler (DOL → C/LLVM) |
+| DolRecomp | https://github.com/ExpansionPak/DolRecomp | `ref/ModernGekko/vendor/dolphin/DolRecomp` | `fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa` | GPL-3.0 | Recursively pinned static PowerPC recompiler (DOL → C/LLVM); fixes Gekko float-pipeline state and emits the inlined hot-helper ABI |
 | RecompCore (top-level clone) | https://github.com/ExpansionPak/RecompCore | `ref/RecompCore` | `af7a1a4854ee243b92926875e5a6b66663b0fda0` | NOASSERTION / Dolphin-derived | Upstream continuation referenced by ModernGekko |
 | Super Mario Sunshine decomp | https://github.com/doldecomp/sms | `ref/sms` | `5a8c71edd157a73e09cf62d7faaa3821feaf9913` | CC0-1.0 (project scaffolding; no assets) | Matching decompilation reference; **not** SunPad’s runtime path |
 | StrikersRecomp | https://github.com/aharonahdoot/StrikersRecomp | `ref/StrikersRecomp` | `cd88f71f5a836c103484c038454b4143000d883c` | GPL-3.0 | Worked example of DolRecomp + runtime packaging for another GameCube title |

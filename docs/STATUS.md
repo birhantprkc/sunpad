@@ -134,12 +134,12 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
   at 1×; iPhone 15 Pro or newer is recommended for iPhone development testing.
 - A community iPhone 15 Pro report describes slowdown after several minutes,
   and physical-iPhone 14 testing reproduced the single-core ceiling. A
-  default-off **Experimental Performance Mode (Restart Required)** now exposes
+  default-off **Reduced CPU Clock 90% (Unstable, Restart Required)** exposes
   the synchronized 90%-clock, `userInitiated` profile for wider evidence
-  collection. Two confirmed-gameplay iPhone 14 traces showed measurable CPU
-  headroom at Serious thermal state, but timing/audio/physics and broader-device
-  acceptance remain open. The dual-core route is rejected after a confirmed
-  FIFO CPU/GPU-desynchronization failure. No universal fix is claimed.
+  collection. Two confirmed-gameplay iPhone 14 traces showed CPU headroom at
+  Serious thermal state, but a later hands-on iPad test found the mode unusably
+  slow. It is not a speed boost or supported play mode. The dual-core route is
+  rejected after a confirmed FIFO CPU/GPU-desynchronization failure.
 - LiveContainer is not a supported or verified launch path. One failure report
   exists, but its LiveContainer version, device/OS, nested-module signature,
   launch output, and SunPad log have not been collected.
@@ -156,7 +156,7 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
   controller-slot, missed-removal, disconnect-release, and
   foreground-reconciliation coverage passes; physical Bluetooth, wired, and
   natural-sleep reconnect acceptance remains open.
-- A default-off **Experimental 60 FPS (Restart Required)** menu option now
+- A default-off **60 FPS Patch (Unstable, Restart Required)** menu option
   exposes the guarded GMSE01 boot path for hands-on testing; the existing
   `-sunpadExperimental60FPS` launch argument remains available for controlled
   developer runs. Original 30 FPS remains the default, and 60 FPS is not yet a

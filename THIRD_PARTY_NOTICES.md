@@ -7,9 +7,9 @@ checkouts and are not vendored into this repository.
 
 | Component | Pin | License / notice |
 |---|---|---|
-| ModernGekko | `048c426ba3db0369e40826d22ad3adcce7fe7c58` | GPL-3.0-or-later |
-| ModernGekko vendored Dolphin/RecompCore | `e13ab348f13cd67879f6db6e9d7185410f8f62c6` | Dolphin aggregate is GPLv3-compatible; per-file SPDX terms apply |
-| DolRecomp | `48c4ef11dd59c7367a3479a433e39a35bda80695` | GPL-3.0 |
+| ModernGekko | `0514d9f03f8602809f66fc92fdca87d30e752997` | GPL-3.0-or-later |
+| ModernGekko vendored Dolphin/RecompCore | `13e492094902644b0d113c586300d358640f9e19` | Dolphin aggregate is GPLv3-compatible; per-file SPDX terms apply |
+| DolRecomp | `fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa` | GPL-3.0-or-later |
 | ModernGekko-Template | `1ee85bb5e09c38f493a09f5fa6e9dc8228b23e42` | Build template; its dependencies retain their upstream licenses |
 
 See [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) for URLs, purposes, and the

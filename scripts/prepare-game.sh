@@ -66,4 +66,10 @@ test "$(find "$GAME/files" -type f | wc -l | tr -d ' ')" = 174
 export MACOSX_DEPLOYMENT_TARGET=14.0
 "$DESKTOP_BUILD/moderngekko-port" build "$GAME" \
   --backend c --toolchain clang --output "$MODULES"
+ACTIVE_MODULE="$(<"$MODULES/GMSE01/active-module.txt")"
+if [[ "$ACTIVE_MODULE" != /* ]]; then
+  ACTIVE_MODULE="$TPL/$ACTIVE_MODULE"
+fi
+"$ROOT/scripts/audit-generated-gmse01.sh" \
+  "$(dirname "$ACTIVE_MODULE")/dolrecomp-output/generated"
 echo "Prepared GMSE01 at $GAME"

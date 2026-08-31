@@ -8,8 +8,9 @@ REF="$ROOT/ref"
 MG="$REF/ModernGekko"
 TPL="$REF/ModernGekko-Template"
 
-MG_REV=048c426ba3db0369e40826d22ad3adcce7fe7c58
-DOLPHIN_REV=e13ab348f13cd67879f6db6e9d7185410f8f62c6
+MG_REV=0514d9f03f8602809f66fc92fdca87d30e752997
+DOLPHIN_REV=13e492094902644b0d113c586300d358640f9e19
+DOLRECOMP_REV=fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa
 TPL_REV=1ee85bb5e09c38f493a09f5fa6e9dc8228b23e42
 
 mkdir -p "$REF"
@@ -90,6 +91,13 @@ git -C "$MG/vendor/dolphin/Externals/cubeb/cubeb" submodule update --init --recu
 actual_dolphin=$(git -C "$MG/vendor/dolphin" rev-parse HEAD)
 if [[ "$actual_dolphin" != "$DOLPHIN_REV" ]]; then
   echo "unexpected ModernGekko vendor/dolphin revision: $actual_dolphin" >&2
+  exit 1
+fi
+
+actual_dolrecomp=$(git -C "$MG/vendor/dolphin/DolRecomp" rev-parse HEAD)
+if [[ "$actual_dolrecomp" != "$DOLRECOMP_REV" ]]; then
+  echo "unexpected ModernGekko vendor/dolphin/DolRecomp revision: $actual_dolrecomp" >&2
+  echo "  expected: $DOLRECOMP_REV" >&2
   exit 1
 fi
 

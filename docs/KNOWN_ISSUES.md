@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-08-18
+Last updated: 2026-08-31
 
 ## iOS / iPadOS
 
@@ -105,7 +105,7 @@ Last updated: 2026-08-18
     DualSense pressure, Bluetooth, wired, natural-sleep reconnect, and Apple
     system-remapping interaction still require hands-on physical acceptance.
 18. **60 FPS is test-only** — Sunshine's confirmed baseline is approximately
-    30 FPS. A default-off **Experimental 60 FPS (Restart Required)** menu
+    30 FPS. A default-off **60 FPS Patch (Unstable, Restart Required)** menu
     option now exposes the guarded GMSE01 boot path for hands-on testing; the
     `-sunpadExperimental60FPS` argument remains for controlled developer runs.
     Changing the menu option affects the next app launch only. A
@@ -126,21 +126,35 @@ Last updated: 2026-08-18
     The prior log lacked speed, thermal, and render-state samples. New builds
     record one bounded performance line every 10 seconds; reproduce and share
     that log before changing timing or renderer behavior.
-20. **Experimental Performance Mode is opt-in research, not a universal fix**
-    — the default-off, restart-required option keeps Sunshine on the
+20. **Reduced CPU Clock 90% is diagnostic research, not a performance fix**
+    — the default-off, unstable, restart-required option keeps Sunshine on the
     synchronized single CPU-GPU thread, reduces the emulated CPU clock to 90%,
     and applies `userInitiated` QoS. It produced measurable headroom in two
     confirmed-gameplay iPhone 14 traces at Serious thermal state, but may alter
     game timing, audio, physics, rendering, or scene behavior. A Preview 3
     report captured severe visual corruption in the Delfino Plaza E.B.S. scene
     while the 90% profile and 4× EFB (`2560×2112`) were both active. FPS,
-    speed ratio, and nominal thermals did not expose the bad frame. The evidence
-    does not yet distinguish the 90% clock from a clock-plus-4× EFB interaction.
-    The earlier dual-core route
+    speed ratio, and nominal thermals did not expose the bad frame. A subsequent
+    generated-code audit found that the Preview module was built with an older
+    DolRecomp revision that implemented Gekko scalar floating-point operations
+    as direct host arithmetic and did not preserve paired-register state. The
+    upstream correction specifically prevents stale paired-register values from
+    corrupting model skinning. A build-4 candidate has now been regenerated with
+    the pinned corrected generator and passes the generated-code, arm64 device,
+    and unsigned-package audits. The signed candidate now also loads the
+    corrected 89,967,168-byte module on the physical iPad and reaches a stable
+    30 FPS / 1× runtime at real-time speed and nominal thermals. A subsequent
+    hands-on physical-iPad session found the 90% option unusably slow, while
+    supported 30 FPS mode at 2× and 4× showed no bizarre rendering. Preview 6
+    therefore resets both unstable experiments off once on upgrade and exposes
+    a one-step supported-mode recovery action. This is the leading root-cause
+    repair, but it remains a candidate until the reporter confirms the original
+    save-selection scene. The
+    earlier dual-core route
     is rejected because confirmed gameplay produced a FIFO Unknown Opcode from
-    CPU/GPU desynchronization. After reproducing a problem, use **••• → Share
-    Diagnostic Log…** and include device model, OS version, scene, approximate
-    play duration, and whether the mode was enabled.
+    CPU/GPU desynchronization. After reproducing a problem, use **••• → Report
+    a Problem…** and include the scene, approximate play duration, and whether
+    either unstable option was enabled.
 21. **Platform/accessory/mod requests are backlog research** — the Wii U
     GameCube Adapter is disabled by the current iOS no-op backend. HD textures,
     Vision Pro, Apple TV, and Eclipse/general mods have no accepted mobile
