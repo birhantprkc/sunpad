@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-08-13
+Last updated: 2026-09-01
 
 Current phase: **SunPad now boots Super Mario Sunshine on a physical iPad as
 well as the iPhone and iPad simulators** as an ahead-of-time statically
@@ -133,7 +133,10 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 - iPhone 14 boot is proven but performance is below the iPad experience even
   at 1×; iPhone 15 Pro or newer is recommended for iPhone development testing.
 - A community iPhone 15 Pro report describes slowdown after several minutes,
-  and physical-iPhone 14 testing reproduced the single-core ceiling. A
+  and physical-iPhone 14 testing reproduced the single-core ceiling. A short
+  Preview 6 follow-up on that iPhone 15 Pro was significantly more stable at
+  the supported 30 FPS / Original 4:3 / 1x baseline, with one brief recovered
+  dip, but no scene-matched long-session acceptance. A
   default-off **Reduced CPU Clock 90% (Unstable, Restart Required)** exposes
   the synchronized 90%-clock, `userInitiated` profile for wider evidence
   collection. Two confirmed-gameplay iPhone 14 traces showed CPU headroom at

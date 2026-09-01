@@ -1,6 +1,7 @@
 # Performance and stability technical debt
 
 - **Assessment date:** 2026-08-12
+- **Evidence updated through:** 2026-09-01 (Preview 6 Issue #12 follow-up)
 - **SunPad source assessed:** `54a5f78965b9075bb25427492a266eaad756f64c`
 - **Scope:** GMSE01 USA revision 0, Apple ARM64, original 30 FPS and the
   default-off experimental 60 FPS mode
@@ -140,8 +141,16 @@ must be measured rather than dismissed.
 - Whether higher render scales materially worsen each reported slowdown. The
   iPhone 14 reproduction proves that native 1x does not eliminate the issue,
   but a matched per-scene scale matrix is still needed.
-- The reported iPhone 15 Pro slowdown. Its supplied Preview 1 logs predate
-  performance sampling and cannot identify the subsystem or Game Mode state.
+- Issue #12 remains open on the iPhone 15 Pro. A September 1 Preview 6 report
+  (`SP-133DE3C9`) confirms that the one-time migration disabled the old 90%
+  experiment and selected original 30 FPS, Original 4:3, and 1x at nominal
+  thermals. Five of six ten-second snapshots reported 29.9-30.0 FPS at
+  0.998-1.012 speed; one approximately one-second performance window fell to
+  20.4 FPS / 0.969 speed and recovered by the next snapshot. The reporter
+  described the build as significantly more stable, but the runtime covered
+  only about 80 seconds and supplied no scene, frequency, or screenshot. This
+  is improved short-run evidence, not a resolved long-session result or a
+  subsystem attribution.
 
 ## Important non-solutions
 
@@ -172,6 +181,10 @@ must be measured rather than dismissed.
 - Do not tune the audio queue first for a general frame slowdown. Audio can
   reveal lost real-time speed, but the known guest-timebase producer bug is
   already fixed and buffering changes can hide rather than remove CPU stalls.
+- Do not treat removal of the iOS `Failed to allocate memory space: 0x3`
+  startup message as a performance fix. StaticRecomp's empty block cache never
+  stores JIT blocks; disabling its unused 64 GiB entry-point-map reservation
+  removes misleading diagnostic noise without changing game execution.
 
 ## Work queue
 
