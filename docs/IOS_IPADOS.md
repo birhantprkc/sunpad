@@ -20,10 +20,10 @@ desktop and the Simulator; fresh physical-device audio re-acceptance is open.
   minimum; oldest-OS runtime acceptance remains before claiming compatibility.
 - `SunPadCoreHost` — boots the game on a background thread, owns the
   CAMetalLayer surface and the pipe-input bridge.
-- `SunPadGameOverlay` — BellPad-inspired overlay: three-dot menu with render
-  resolution (1× native/2×/3×/4×), aspect ratio (original 4:3 plus experimental
-  16:9 and Fill Screen), touch-control settings (opacity, size,
-  hide-on-controller, edit-layout, reset), Game Data & Saves actions.
+- `SunPadGameOverlay` — BellPad-inspired overlay: a stable three-dot button with
+  Display (render resolution and aspect ratio), Controls (controller mapping
+  and touch settings), Unstable Experiments, icon-labelled Game Data & Saves,
+  and Report a Problem actions.
 - Sunshine touch controls: main stick, C-stick, A/B/X/Y/Z/Start/L/R.
 - Shared settings (`SunPadSettings`) and normalized input
   (`SunPadInputState`) reused by macOS later.

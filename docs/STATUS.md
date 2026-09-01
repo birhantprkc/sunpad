@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 Current phase: **SunPad now boots Super Mario Sunshine on a physical iPad as
 well as the iPhone and iPad simulators** as an ahead-of-time statically
@@ -57,10 +57,11 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 6. Input works end-to-end on iOS: normalized touch/GameController state is
    written to the Dolphin pipe device and advances the game (START presses
    moved the game from the title into gameplay rendering).
-7. BellPad-inspired overlay: three-dot menu, 1x native/2x/3x/4x render
-   resolution, original 4:3 plus experimental 16:9/Fill Screen output, touch
-   controls, opacity/size/hide/edit-layout settings. Aspect changes do not
-   move the separate touch overlay.
+7. BellPad-inspired overlay: a physically accepted stable three-dot button;
+   Display groups 1x native/2x/3x/4x render resolution and aspect ratio;
+   Controls groups controller mapping and touch settings; Unstable Experiments,
+   icon-labelled Game Data & Saves, and Report a Problem remain distinct.
+   Aspect changes do not move the separate touch overlay.
 8. No runtime PowerPC JIT on iOS: interpreter fallback + software vertex
    loader.
 9. **On-device game-data import** is implemented: security-scoped document

@@ -1,6 +1,6 @@
 # Maintainer Notes
 
-Last updated: 2026-08-12
+Last updated: 2026-09-02
 
 This is a public maintainer summary, not a machine-specific handoff. SunPad is
 an experimental developer preview for `GMSE01` USA revision 0. Its unsigned
@@ -43,6 +43,9 @@ device data, and never use a removing CoreDevice container overlay for updates.
 
 - Simulator and physical iPad boot, Metal rendering, import/extraction, touch
   input, and gameplay have been demonstrated.
+- The reorganized Display/Controls three-dot menu, stable white menu glyph,
+  touch settings, menu dismissal, and in-place foreground recovery were
+  accepted on the physical iPad before Preview 7 publication.
 - The controller snapshot and input-pipe overflow crash is fixed in source and
   covered by a focused regression test; exact HDMI/controller replay remains.
 - The guest-timebase audio defect is fixed and continuous audio is verified on

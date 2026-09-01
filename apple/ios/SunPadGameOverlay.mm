@@ -395,19 +395,35 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
                                                         weight:UIImageSymbolWeightBold];
     UIImage *ellipsis = [UIImage systemImageNamed:@"ellipsis" withConfiguration:symbol];
     [_menuButton setImage:ellipsis forState:UIControlStateNormal];
-    [_menuButton setImage:ellipsis forState:UIControlStateHighlighted];
-    [_menuButton setImage:ellipsis forState:UIControlStateFocused];
-    _menuButton.tintColor = UIColor.whiteColor;
-    _menuButton.backgroundColor = [UIColor colorWithWhite:0.06 alpha:0.72];
-    _menuButton.layer.cornerRadius = 20.0;
-    _menuButton.layer.borderWidth = 1.0;
-    _menuButton.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.30].CGColor;
-    _menuButton.layer.masksToBounds = YES;
     _menuButton.accessibilityLabel = @"Menu";
     _menuButton.showsMenuAsPrimaryAction = YES;
     if (@available(iOS 15.0, *))
         _menuButton.changesSelectionAsPrimaryAction = NO;
     _menuButton.menu = [self buildMenu];
+
+    UIButtonConfiguration *configuration =
+        [UIButtonConfiguration plainButtonConfiguration];
+    configuration.image = ellipsis;
+    configuration.baseForegroundColor = UIColor.whiteColor;
+    configuration.contentInsets = NSDirectionalEdgeInsetsZero;
+    configuration.cornerStyle = UIButtonConfigurationCornerStyleCapsule;
+
+    UIBackgroundConfiguration *background =
+        [UIBackgroundConfiguration clearConfiguration];
+    background.backgroundColor = [UIColor colorWithWhite:0.06 alpha:0.72];
+    background.cornerRadius = 20.0;
+    background.strokeColor = [UIColor colorWithWhite:1.0 alpha:0.30];
+    background.strokeWidth = 1.0;
+    configuration.background = background;
+
+    // Keep the primary-action menu transition on one circular appearance.
+    // Otherwise iPadOS can synthesize a rectangular selected state while the
+    // menu is being dismissed.
+    _menuButton.automaticallyUpdatesConfiguration = NO;
+    _menuButton.configuration = configuration;
+    _menuButton.tintColor = UIColor.whiteColor;
+    _menuButton.backgroundColor = UIColor.clearColor;
+    _menuButton.layer.borderWidth = 0.0;
     [self addSubview:_menuButton];
 }
 
@@ -428,7 +444,17 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         [self aspectRatioAction:@"Fill Screen (Experimental)" mode:SunPadAspectRatioFillScreen],
     ]];
 
-    UIMenu *dataMenu = [UIMenu menuWithTitle:@"Game Data & Saves" children:@[
+    UIMenu *displayMenu = [UIMenu menuWithTitle:@"Display"
+                                          image:[UIImage systemImageNamed:@"display"]
+                                     identifier:nil
+                                        options:0
+                                       children:@[renderMenu, aspectMenu]];
+
+    UIMenu *dataMenu = [UIMenu menuWithTitle:@"Game Data & Saves"
+                                       image:[UIImage systemImageNamed:@"internaldrive"]
+                                  identifier:nil
+                                     options:0
+                                    children:@[
         [UIAction actionWithTitle:@"Import or Reimport Game Data"
                             image:[UIImage systemImageNamed:@"arrow.triangle.2.circlepath"]
                        identifier:nil handler:^(__kindof UIAction *action) {
@@ -573,11 +599,11 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         [weakSelf reportProblem];
     }];
 
-    return [UIMenu menuWithTitle:@"SunPad" children:@[
-        renderMenu,
-        aspectMenu,
-        fpsAction,
-        experimentsMenu,
+    UIMenu *controlsMenu = [UIMenu menuWithTitle:@"Controls"
+                                           image:[UIImage systemImageNamed:@"gamecontroller"]
+                                      identifier:nil
+                                         options:0
+                                        children:@[
         [UIAction actionWithTitle:@"Controller Button Mapping…"
                             image:[UIImage systemImageNamed:@"gamecontroller"]
                        identifier:nil handler:^(__kindof UIAction *action) {
@@ -590,6 +616,13 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
             (void)action;
             [weakSelf toggleSettingsPanel];
         }],
+    ]];
+
+    return [UIMenu menuWithTitle:@"SunPad" children:@[
+        displayMenu,
+        fpsAction,
+        experimentsMenu,
+        controlsMenu,
         dataMenu,
         reportProblemAction,
     ]];

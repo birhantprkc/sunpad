@@ -1,18 +1,18 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 6 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 7 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 6 regenerates the executable module with corrected floating-point and
-paired-register handling as the leading candidate for the reported warped-model
-problem. On the first Preview 6 launch, both unstable experiments are reset
-off. **••• → Unstable Experiments → Use Supported 30 FPS Mode** restores the
-supported full CPU clock and original 30 FPS mode for the next launch. The two
-individual diagnostic options are not intended for normal play.
+Preview 7 stabilizes the iPad three-dot button during dismissal and foreground
+recovery, groups render resolution and aspect ratio under **Display**, and
+groups controller mapping and touch settings under **Controls**. It retains
+Preview 6's corrected executable module and supported-mode recovery controls.
+**••• → Unstable Experiments → Use Supported 30 FPS Mode** restores the
+supported full CPU clock and original 30 FPS mode for the next launch.
 
 1. Download
-   [`SunPad-0.1.0-preview.6-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.6/SunPad-0.1.0-preview.6-unsigned.ipa)
-   from the [Preview 6 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.6).
+   [`SunPad-0.1.0-preview.7-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.7/SunPad-0.1.0-preview.7-unsigned.ipa)
+   from the [Preview 7 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.7).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

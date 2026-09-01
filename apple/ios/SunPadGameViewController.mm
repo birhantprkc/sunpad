@@ -237,6 +237,7 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
 - (void)publishInputFromController:(GCController *)controller
                            gamepad:(GCExtendedGamepad *)gamepad;
 - (void)reconcileControllersForReason:(NSString *)reason;
+- (void)restoreOverlayAfterForeground;
 - (NSString *)resolvedImportTestPath:(NSString *)requestedPath;
 - (void)showGameDataSetupState;
 - (NSString *)sunPadSupportRoot;
@@ -993,8 +994,34 @@ static NSUInteger SunPadRegularFileCount(NSString *directory) {
     _performanceLogSeconds = 0;
     _hasPerformanceUsageBaseline = NO;
     [self reconcileControllersForReason:@"foreground"];
-    [_overlay refreshControllerVisibility];
+    [self restoreOverlayAfterForeground];
     [_coreHost resumeRuntimeAfterSystemEvent];
+}
+
+- (void)restoreOverlayAfterForeground {
+    if (_overlay.superview != self.view) {
+        [_overlay removeFromSuperview];
+        _overlay.frame = self.view.bounds;
+        _overlay.autoresizingMask = UIViewAutoresizingFlexibleWidth |
+            UIViewAutoresizingFlexibleHeight;
+        [self.view addSubview:_overlay];
+        SunPadLog(@"overlay reattached after foreground surface change");
+    }
+    _overlay.hidden = NO;
+    _overlay.alpha = 1.0;
+    [self.view bringSubviewToFront:_overlay];
+    [_overlay refreshControllerVisibility];
+    [_overlay applySettings];
+    [_overlay setNeedsLayout];
+
+    __weak SunPadGameViewController *weakSelf = self;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        SunPadGameViewController *strongSelf = weakSelf;
+        if (strongSelf == nil || strongSelf->_overlay.superview != strongSelf.view)
+            return;
+        [strongSelf.view bringSubviewToFront:strongSelf->_overlay];
+        [strongSelf->_overlay setNeedsLayout];
+    });
 }
 
 #pragma mark - SunPadGameOverlayDelegate
