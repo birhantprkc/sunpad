@@ -1,6 +1,6 @@
 # iOS and iPadOS
 
-Last updated: 2026-08-11
+Last updated: 2026-09-01
 
 ## Current status
 
@@ -170,10 +170,13 @@ controller mapping and physical Bluetooth, wired, and natural-sleep reconnect
 remain open. The installed iOS 26.5 Simulator image does not
 expose a VoiceOver setting:
 
-1. **Evidence intake first.** The reported iPhone 15 Pro slowdown is blocked on
-   the offered SunPad log plus scene, render scale, controller, thermal state,
-   and elapsed-time details. The LiveContainer failure is blocked on the
-   checklist in [INSTALL_IPA.md](INSTALL_IPA.md). Do not guess at either cause.
+1. **Evidence intake first.** The iPhone 15 Pro reporter's short Preview 6 log
+   is significantly healthier at the supported 30 FPS / Original 4:3 / 1x
+   baseline, but it contains no scene or longer-route evidence. If sustained
+   slowdown returns, collect **Report a Problem…** after the event with the
+   scene and approximate play time. The LiveContainer failure is blocked on
+   the checklist in [INSTALL_IPA.md](INSTALL_IPA.md). Do not guess at either
+   cause.
 2. **Loading polish only.** Improve the existing presentation while keeping the
    current startup architecture and first-frame completion signal.
 3. **Touch controls.** Grouped D-pad editing and the wider analog R slider are

@@ -23,6 +23,7 @@ plutil -lint apple/ios/Info.plist apple/macos/Info.plist
 ./tests/test-controller-slots.sh
 ./tests/test-experimental-60fps-config.sh
 ./tests/test-experimental-performance-config.sh
+./tests/test-ios-staticrecomp-config.sh
 ./tests/test-generated-gmse01-audit.sh
 ./tests/test-diagnostics.sh
 ./tests/test-game-data-setup.sh

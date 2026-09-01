@@ -1,6 +1,6 @@
 # Testing
 
-Last updated: 2026-08-11
+Last updated: 2026-09-01
 
 ## Principles
 
@@ -295,6 +295,25 @@ presence. Automated launch was backgrounded before runtime creation, so this is
 not a second gameplay acceptance pass. The recognized GCI was backed up before
 installation and read back byte-identical afterward at SHA-256
 `a8f5ea47227478c9acc010f9ba99fe5a0c493ff2e044c1f56b6a8952badce932`.
+
+On September 1, the iPhone 15 Pro reporter for Issue #12 supplied Preview 6
+report `SP-133DE3C9` and described the build as significantly more stable. The
+build-4 log confirms that the safety migration disabled the old 90% performance
+experiment and selected original 30 FPS, Original 4:3, and 1x on the A17 Pro at
+nominal thermals with Low Power Mode off. Five of six ten-second snapshots held
+29.9-30.0 FPS at 0.998-1.012 speed. One approximately one-second performance
+window reported 20.4 FPS / 0.969 speed while graphics resources were still
+rising, then recovered by the next snapshot and remained at 30 FPS. Resident
+memory levelled near 484 MiB. The report covers only about 80 seconds of runtime
+and contains no scene, frequency answer, or screenshot, so it is positive
+community hands-on evidence rather than long-session closure of Issue #12.
+
+The same report repeated two pre-existing startup messages. The memory-space
+error is the unused 64 GiB large-entry-map reservation inherited by
+StaticRecomp's empty invalidation cache; the follow-up mainline runtime disables
+that reservation on iOS. The one-time FEAT_AFP notice remains an ARM
+floating-point capability warning and is not correlated with the recovered
+slowdown sample. Neither message is evidence that iOS terminated the app.
 
 | Area | Current state | Required acceptance |
 |---|---|---|

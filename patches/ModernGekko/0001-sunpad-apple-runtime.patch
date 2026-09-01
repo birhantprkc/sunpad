@@ -319,7 +319,7 @@ index 981e098..4c7e985 100644
  #ifdef _WIN32
    else
      impl->platform = Platform::CreateWin32Platform();
-@@ -267,12 +405,22 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -267,12 +405,27 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
                           "the requested Dolphin host platform is unavailable"}};
    }
  
@@ -334,6 +334,11 @@ index 981e098..4c7e985 100644
 +  SetDolphinLogCallback(impl->config.log_callback, impl->config.log_user_data);
  
    Config::SetBase(Config::MAIN_CPU_CORE, PowerPC::CPUCore::StaticRecomp);
++#ifdef MODERNGEKKO_HAVE_IOS
++  // StaticRecomp's empty block cache only observes invalidations. It cannot
++  // use Dolphin's 64 GiB JIT entry-point map, which iOS refuses to reserve.
++  Config::SetBase(Config::MAIN_LARGE_ENTRY_POINTS_MAP, false);
++#endif
 +  if (impl->config.emulated_cpu_clock_scale)
 +  {
 +    Config::SetBase(Config::MAIN_OVERCLOCK_ENABLE, true);

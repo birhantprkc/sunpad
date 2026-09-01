@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-08-31
+Last updated: 2026-09-01
 
 ## iOS / iPadOS
 
@@ -65,11 +65,15 @@ Last updated: 2026-08-31
     data. Provision the module before user data and use a non-removing
     directory overlay. Back up and read back each device's saves and settings;
     never treat an app-install success message as preservation proof.
-13. **iPhone slowdown report needs its log** — an iPhone 15 Pro tester reports
-    slowdown after several minutes and has offered a diagnostic log. Until the
-    log, exact scene, render scale, controller connection, thermal state, and
-    elapsed time are captured, this remains an undiagnosed report rather than
-    evidence for a particular runtime fix.
+13. **iPhone slowdown remains open after an improved Preview 6 retest** — the
+    iPhone 15 Pro reporter described Preview 6 as significantly more stable.
+    Its approximately 80-second build-4 log used supported 30 FPS, Original
+    4:3, and 1x at nominal thermals and held full speed in five of six samples;
+    one brief 20.4 FPS / 0.969-speed sample recovered immediately. Because the
+    report did not include the scene, frequency, screenshot, or a longer route,
+    it does not close the original several-minute slowdown. If sustained
+    slowdown returns, capture **Report a Problem…** after it happens and include
+    the scene and approximate play time.
 14. **LiveContainer is unverified** — one user reports that the Preview 1 IPA
     does not work in LiveContainer. SunPad's supported preview path re-signs
     both the app and nested `gGMSE01_recomp.dylib` and installs normally. A
