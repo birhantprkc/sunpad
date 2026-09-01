@@ -46,9 +46,9 @@ game module.
 | Game setup | Exact GMSE01 USA Rev 0 validation, staged private import, atomic activation, and real removal |
 | Touch | Move stick, C-stick, grouped D-pad editing, A/B/X/Y/Z, L, analog R, Start, and a persistent settings menu |
 | Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
-| Settings | Live 1×–4× render scale, original 4:3 plus experimental widescreen/fill modes, and touch-layout settings |
+| Settings | Stable three-dot menu with Display, Controls, Unstable Experiments, Game Data & Saves, and Report a Problem; live 1×–4× render scale, aspect ratio, controller mapping, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 6 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 7 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,14 +69,12 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.6-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.6/SunPad-0.1.0-preview.6-unsigned.ipa).
-Preview 6 regenerates the executable module with corrected Gekko
-floating-point and paired-register handling as the leading candidate for the
-reported warped-model problem. It also resets both unstable experiments off
-once when upgrading, adds a one-step **Use Supported 30 FPS Mode** recovery
-action, and clearly labels both experiments as diagnostic options that are not
-for normal play. Diagnostic reports now distinguish stored settings from the
-render scale actually active in the running game.
+[`SunPad-0.1.0-preview.7-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.7/SunPad-0.1.0-preview.7-unsigned.ipa).
+Preview 7 stabilizes the iPad three-dot button during menu dismissal and after
+foregrounding. It also reorganizes the menu into **Display** and **Controls**
+submenus, adds an icon to **Game Data & Saves**, and keeps **Report a Problem…**
+as the final action. It retains Preview 6's corrected Gekko floating-point and
+paired-register module plus the supported-mode recovery controls.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -148,7 +146,7 @@ committed.
 SunPad never downloads or bundles game data.
 
 1. Launch SunPad and open the **•••** menu.
-2. Choose **Game Data & Saves → Change or Reimport**.
+2. Choose **Game Data & Saves → Import or Reimport Game Data**.
 3. Select your supported raw ISO/GCM image in Files.
 4. Leave SunPad open while it validates and extracts the image locally.
 5. Start playing when the game finishes booting.
@@ -306,7 +304,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 6** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 7** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game

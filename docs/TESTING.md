@@ -296,6 +296,24 @@ not a second gameplay acceptance pass. The recognized GCI was backed up before
 installation and read back byte-identical afterward at SHA-256
 `a8f5ea47227478c9acc010f9ba99fe5a0c493ff2e044c1f56b6a8952badce932`.
 
+On September 2, the Preview 7 app-layer candidate was installed in place on
+the same physical iPad with the unchanged corrected Preview 6 module. The
+three-dot menu's Display and Controls hierarchy, icon-labelled Game Data &
+Saves submenu, final Report a Problem action, touch settings, and dismissal
+behavior were accepted hands-on. An initial blue ellipsis candidate was
+rejected; the corrected build explicitly retains a white glyph and was
+accepted after redeployment. The app reached `runtime created`, the input pipe
+connected on attempt 1, and the GCI remained byte-identical at SHA-256
+`a8f5ea47227478c9acc010f9ba99fe5a0c493ff2e044c1f56b6a8952badce932`.
+The public candidate was then rebuilt with a clean temporary checkout of the
+exact pinned ModernGekko, RecompCore, and DolRecomp revisions. The current
+iPhoneOS core, unsigned Release app, repository gate, and package audit passed.
+Two independent Preview 7 IPAs were byte-identical at SHA-256
+`2fdaa6978870d811689bb54c368de5fe678b5e6d3409582abd458744bf5ae8cc`.
+The package reuses the byte-verified Preview 6 GMSE01 module and contains the
+new app-layer/menu code; it contains no game image, extracted data, save,
+settings, signing material, or personal build path.
+
 On September 1, the iPhone 15 Pro reporter for Issue #12 supplied Preview 6
 report `SP-133DE3C9` and described the build as significantly more stable. The
 build-4 log confirms that the safety migration disabled the old 90% performance
