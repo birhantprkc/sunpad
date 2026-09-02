@@ -314,6 +314,24 @@ The package reuses the byte-verified Preview 6 GMSE01 module and contains the
 new app-layer/menu code; it contains no game image, extracted data, save,
 settings, signing material, or personal build path.
 
+On September 3, Issue #23 report `SP-DCACA682` isolated a ghosted scene copy
+to Sunshine's heat-distortion pass while experimental 16:9 output was active.
+The Preview 8 candidate applies Dolphin's documented reversible GMSE01
+heatwave bypass only in 16:9 and Fill Screen, restores the original instruction
+in Original 4:3, and reapplies the selected state after boot or foreground
+resume. The runtime compiled independently from clean checkouts at ModernGekko
+`0514d9f`, vendored Dolphin/RecompCore `13e4920`, ModernGekko-Template
+`1ee85bb`, and DolRecomp `fa0cf61`; the working-checkout rebuild, unsigned
+Release iPhoneOS app link, dependency-patch reconstruction, and complete
+repository gate also passed. The candidate reuses the hosted, byte-verified
+Preview 7 module at SHA-256
+`070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
+Two independently packaged Preview 8 IPAs were byte-identical at 26,461,141
+bytes and SHA-256
+`65c573c69f755d08221fd54c530ae0f5ba9f3a126e0dbb44fad532c5ff177167`;
+both passed ZIP and package audits. Physical visual confirmation at the
+reporter's Delfino Plaza scene remains open.
+
 On September 1, the iPhone 15 Pro reporter for Issue #12 supplied Preview 6
 report `SP-133DE3C9` and described the build as significantly more stable. The
 build-4 log confirms that the safety migration disabled the old 90% performance

@@ -48,7 +48,7 @@ game module.
 | Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
 | Settings | Stable three-dot menu with Display, Controls, Unstable Experiments, Game Data & Saves, and Report a Problem; live 1×–4× render scale, aspect ratio, controller mapping, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 7 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 8 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,12 +69,12 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.7-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.7/SunPad-0.1.0-preview.7-unsigned.ipa).
-Preview 7 stabilizes the iPad three-dot button during menu dismissal and after
-foregrounding. It also reorganizes the menu into **Display** and **Controls**
-submenus, adds an icon to **Game Data & Saves**, and keeps **Report a Problem…**
-as the final action. It retains Preview 6's corrected Gekko floating-point and
-paired-register module plus the supported-mode recovery controls.
+[`SunPad-0.1.0-preview.8-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.8/SunPad-0.1.0-preview.8-unsigned.ipa).
+Preview 8 prevents Sunshine's heat-distortion pass from drawing a ghosted copy
+of the scene in the experimental 16:9 and Fill Screen modes. The effect is
+disabled only while a wide mode is active and is restored in Original 4:3.
+It retains Preview 7's stable iPad menu and reorganized **Display** and
+**Controls** submenus, plus Preview 6's corrected Gekko executable module.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -304,7 +304,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 7** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 8** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game

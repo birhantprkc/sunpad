@@ -108,10 +108,13 @@ index af75a25..e298aca 100644
  };
  
  enum class RuntimeErrorCode
-@@ -127,6 +170,7 @@ public:
+@@ -127,6 +170,10 @@ public:
    const RuntimeConfig& GetConfig() const;
    const GameMetadata& GetGameMetadata() const;
    const std::string& GetWindowTitle() const;
++  // Sunshine's heat-distortion pass is incompatible with forced wide output.
++  // Suppression is reversible and is ignored for games other than GMSE01.
++  void SetGMSE01HeatwaveSuppressed(bool suppressed);
 +  RuntimeDiagnosticsSnapshot GetDiagnosticsSnapshot() const;
  
  private:
@@ -120,7 +123,7 @@ diff --git a/src/runtime/dolphin_runtime.cpp b/src/runtime/dolphin_runtime.cpp
 index 981e098..4c7e985 100644
 --- a/src/runtime/dolphin_runtime.cpp
 +++ b/src/runtime/dolphin_runtime.cpp
-@@ -2,11 +2,18 @@
+@@ -2,11 +2,19 @@
  
  #include "AudioCommon/AudioCommon.h"
  #include "Common/Config/Config.h"
@@ -137,6 +140,7 @@ index 981e098..4c7e985 100644
  #include "Core/Config/MainSettings.h"
 +#include "Core/Config/SessionSettings.h"
  #include "Core/Core.h"
++#include "Core/Debugger/PPCDebugInterface.h"
  #include "Core/HW/GBACore.h"
  #include "Core/Host.h"
 @@ -18,12 +25,18 @@
@@ -158,13 +162,16 @@ index 981e098..4c7e985 100644
  #include <algorithm>
  #include <array>
  #include <atomic>
-@@ -132,6 +145,74 @@ Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core>) {
+@@ -132,6 +145,77 @@ Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core>) {
  }
  
  namespace moderngekko {
 +namespace {
 +std::atomic<RuntimeLogCallback> s_runtime_log_callback{nullptr};
 +std::atomic<void*> s_runtime_log_user_data{nullptr};
++
++constexpr u32 GMSE01_HEATWAVE_ENTRY = 0x8019F83Cu;
++constexpr std::array<u8, 4> PPC_BLR = {0x4E, 0x80, 0x00, 0x20};
 +
 +const char* RuntimeLogCategory(Common::Log::LogType type)
 +{
@@ -233,15 +240,17 @@ index 981e098..4c7e985 100644
  struct Runtime::Impl {
    RuntimeConfig config;
    GameMetadata metadata;
-@@ -139,10 +220,24 @@ struct Runtime::Impl {
+@@ -139,10 +220,25 @@ struct Runtime::Impl {
    std::unique_ptr<Platform> platform;
    std::unique_ptr<ModManager> mods;
    Common::EventHook state_hook;
 +  Common::EventHook diagnostics_frame_hook;
    bool ui_initialized = false;
    bool controllers_initialized = false;
-   bool booted = false;
+-  bool booted = false;
++  std::atomic<bool> booted{false};
    std::atomic<bool> running{false};
++  std::atomic<bool> gmse01_heatwave_suppressed{false};
 +  std::atomic<std::uint64_t> diagnostic_frame_count{0};
 +  std::atomic<std::uint64_t> diagnostic_projection_hash{0};
 +  std::atomic<std::uint32_t> diagnostic_draw_calls{0};
@@ -405,10 +414,30 @@ index 981e098..4c7e985 100644
      s_boot_session_data.reset();
    }
    if (!boot) {
-@@ -383,21 +545,54 @@ RuntimeRunResult Runtime::Run() {
+@@ -372,7 +534,10 @@ RuntimeRunResult Runtime::Run() {
+   }
+   m_impl->state_hook =
+       Core::AddOnStateChangedCallback([this](Core::State state) {
+-        if (state == Core::State::Uninitialized && m_impl->platform)
++        if (state == Core::State::Running)
++          SetGMSE01HeatwaveSuppressed(
++              m_impl->gmse01_heatwave_suppressed.load(std::memory_order_relaxed));
++        else if (state == Core::State::Uninitialized && m_impl->platform)
+           m_impl->platform->Stop();
+       });
+   if (!BootManager::BootCore(Core::System::GetInstance(), std::move(boot),
+@@ -383,21 +545,64 @@ RuntimeRunResult Runtime::Run() {
                           "Dolphin could not boot sys/main.dol"}};
    }
    m_impl->booted = true;
++  std::thread startup_patch_thread([this] {
++    while (m_impl->running.load(std::memory_order_relaxed) &&
++           Core::GetState(Core::System::GetInstance()) == Core::State::Starting)
++      std::this_thread::sleep_for(std::chrono::milliseconds(4));
++    if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
++      SetGMSE01HeatwaveSuppressed(
++          m_impl->gmse01_heatwave_suppressed.load(std::memory_order_relaxed));
++  });
 -  std::jthread title_thread;
 +  m_impl->diagnostics_frame_hook =
 +      GetVideoEvents().after_frame_event.Register([this](Core::System&) {
@@ -456,6 +485,8 @@ index 981e098..4c7e985 100644
      });
    }
    m_impl->platform->MainLoop();
++  if (startup_patch_thread.joinable())
++    startup_patch_thread.join();
 -  title_thread.request_stop();
 +  stop_title_thread.store(true, std::memory_order_relaxed);
    if (title_thread.joinable())
@@ -465,10 +496,31 @@ index 981e098..4c7e985 100644
    Core::Stop(Core::System::GetInstance());
    Core::Shutdown(Core::System::GetInstance());
    m_impl->booted = false;
-@@ -431,4 +626,25 @@ const GameMetadata &Runtime::GetGameMetadata() const {
+@@ -431,4 +626,46 @@ const GameMetadata &Runtime::GetGameMetadata() const {
    return m_impl->metadata;
  }
  const std::string &Runtime::GetWindowTitle() const { return m_impl->title; }
++
++void Runtime::SetGMSE01HeatwaveSuppressed(bool suppressed) {
++  m_impl->gmse01_heatwave_suppressed.store(suppressed, std::memory_order_relaxed);
++  if (m_impl->metadata.disc_id != "GMSE01" ||
++      !m_impl->booted.load(std::memory_order_acquire) ||
++      Core::GetState(Core::System::GetInstance()) != Core::State::Running)
++    return;
++
++  auto& system = Core::System::GetInstance();
++  const Core::CPUThreadGuard guard(system);
++  auto& debug = system.GetPowerPC().GetDebugInterface();
++  if (suppressed) {
++    // Dolphin's documented Sunshine workaround is 0419F83C 4E800020.
++    // Use the debugger's reversible patch API so it also invalidates the
++    // StaticRecomp chunk and preserves the original instruction for restore.
++    debug.SetPatch(guard, GMSE01_HEATWAVE_ENTRY,
++                   std::vector<u8>(PPC_BLR.begin(), PPC_BLR.end()));
++  } else {
++    debug.UnsetPatch(guard, GMSE01_HEATWAVE_ENTRY);
++  }
++}
 +
 +RuntimeDiagnosticsSnapshot Runtime::GetDiagnosticsSnapshot() const {
 +  return {
