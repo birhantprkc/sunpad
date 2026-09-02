@@ -326,9 +326,10 @@ Release iPhoneOS app link, dependency-patch reconstruction, and complete
 repository gate also passed. The candidate reuses the hosted, byte-verified
 Preview 7 module at SHA-256
 `070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
-Two independently packaged Preview 8 IPAs were byte-identical at 26,461,141
+Two independently packaged Preview 8 IPAs from merged `main` were byte-identical
+at 26,461,143
 bytes and SHA-256
-`65c573c69f755d08221fd54c530ae0f5ba9f3a126e0dbb44fad532c5ff177167`;
+`4748f800b42f112367c66e40104edb95d636c58a4b75c5dc9fb59d0353df08a2`;
 both passed ZIP and package audits. Physical visual confirmation at the
 reporter's Delfino Plaza scene remains open.
 
