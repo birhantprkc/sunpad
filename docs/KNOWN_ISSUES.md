@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-09-01
+Last updated: 2026-09-03
 
 ## iOS / iPadOS
 
@@ -45,10 +45,12 @@ Last updated: 2026-09-01
    counters before attempting device-specific tuning. The current iPad target
    provides the better mobile experience.
 9. **Experimental wide output** — Original 4:3 is the stable default on both
-   iPhone and iPad. The 16:9 and Fill Screen menu choices use Dolphin's
-   widescreen/custom-aspect paths and can expose projection, culling, or
-   stretching defects. They change game rendering only; touch controls keep
-   their normal device layout.
+   iPhone and iPad. Sunshine's heat-distortion pass produced a ghosted copy of
+   the scene under Dolphin's forced-wide projection, so SunPad now suppresses
+   that cosmetic pass only while 16:9 or Fill Screen is active and restores it
+   when returning to 4:3. Wider modes can still expose other projection,
+   culling, or stretching defects. They change game rendering only; touch
+   controls keep their normal device layout.
 10. **Sustained CPU diagnostics** — physical iPad runs commonly exceed iPadOS's
     diagnostic threshold (roughly 58–99% average CPU in retained reports), but
     every inspected `cpu_resource` report says `Action taken: none`. This is a

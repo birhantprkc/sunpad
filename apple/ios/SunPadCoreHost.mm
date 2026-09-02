@@ -412,6 +412,12 @@ static void SunPadRuntimeLogCallback(
 
 - (void)applyAspectRatioMode:(SunPadAspectRatioMode)mode source:(NSString *)source {
     NSString *modeName = @"original-4:3";
+    BOOL suppressHeatwave = mode != SunPadAspectRatioOriginal;
+    if (suppressHeatwave) {
+        std::scoped_lock lock(*_runtimeMutex);
+        if (_runtime)
+            _runtime->SetGMSE01HeatwaveSuppressed(true);
+    }
     switch (mode) {
     case SunPadAspectRatioWidescreen:
         modeName = @"widescreen-16:9";
@@ -435,7 +441,13 @@ static void SunPadRuntimeLogCallback(
         Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false);
         break;
     }
-    SunPadLog(@"runtime aspect mode=%@ source=%@", modeName, source);
+    if (!suppressHeatwave) {
+        std::scoped_lock lock(*_runtimeMutex);
+        if (_runtime)
+            _runtime->SetGMSE01HeatwaveSuppressed(false);
+    }
+    SunPadLog(@"runtime aspect mode=%@ heatwaveSuppressed=%d source=%@",
+              modeName, suppressHeatwave, source);
 }
 
 - (void)setAspectRatioMode:(SunPadAspectRatioMode)mode {
