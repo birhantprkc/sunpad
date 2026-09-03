@@ -70,15 +70,18 @@ Last updated: 2026-09-03
     data. Provision the module before user data and use a non-removing
     directory overlay. Back up and read back each device's saves and settings;
     never treat an app-install success message as preservation proof.
-13. **iPhone slowdown remains open after an improved Preview 6 retest** — the
-    iPhone 15 Pro reporter described Preview 6 as significantly more stable.
-    Its approximately 80-second build-4 log used supported 30 FPS, Original
-    4:3, and 1x at nominal thermals and held full speed in five of six samples;
-    one brief 20.4 FPS / 0.969-speed sample recovered immediately. Because the
-    report did not include the scene, frequency, screenshot, or a longer route,
-    it does not close the original several-minute slowdown. If sustained
-    slowdown returns, capture **Report a Problem…** after it happens and include
-    the scene and approximate play time.
+13. **iPhone slowdown remains open; Preview 10 repairs one confirmed fallback
+    leak** — the iPhone 15 Pro reporter's Preview 8 build-6 log records Noki Bay
+    slowing to roughly 22–28 FPS at 1×, Original 4:3, and Serious thermals while
+    the combined CPU-GPU thread was saturated. Earlier in the same process the
+    reporter selected 16:9 and returned to 4:3. That exposed a concrete bug:
+    Dolphin's one-shot `UnsetPatch` removed bookkeeping but did not restore the
+    original heatwave instruction, leaving the containing 16 KiB StaticRecomp
+    chunk in interpreter fallback. Preview 10 writes back the verified original
+    `mflr r0` instruction and invalidates the chunk so native verification can
+    recover. A cold, direct-to-Noki 1× / Original 4:3 retest is still required;
+    this evidence does not rule out the pre-existing scene-specific single-core
+    ceiling or thermal contribution.
 14. **LiveContainer is unverified** — one user reports that the Preview 1 IPA
     does not work in LiveContainer. SunPad's supported preview path re-signs
     both the app and nested `gGMSE01_recomp.dylib` and installs normally. A

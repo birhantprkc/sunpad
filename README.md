@@ -48,7 +48,7 @@ game module.
 | Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
 | Settings | Stable three-dot menu with Display, Controls, Unstable Experiments, Game Data & Saves, and Report a Problem; live 1×–4× render scale, aspect ratio, controller mapping, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 9 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 10 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -69,12 +69,13 @@ but still needs final-artifact inspection and oldest-target runtime acceptance.
 ## Download the iPhone/iPad preview
 
 The current public download is the unsigned
-[`SunPad-0.1.0-preview.9-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.9/SunPad-0.1.0-preview.9-unsigned.ipa).
-Preview 9 replaces Dolphin's generic forced-wide projection with its
-GMSE01-specific widescreen correction to address the shadow seams and
-duplicated geometry reported after Preview 8. It retains Preview 8's targeted
-heat-distortion bypass in 16:9 and Fill Screen, and aspect changes now apply on
-the next launch. It also retains Preview 6's corrected Gekko executable module.
+[`SunPad-0.1.0-preview.10-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.10/SunPad-0.1.0-preview.10-unsigned.ipa).
+Preview 10 fixes a Preview 8/9 heatwave-patch restoration bug identified from
+the latest Issue #12 log. Returning to Original 4:3 now writes back GMSE01's
+verified original instruction so StaticRecomp can leave the interpreter-only
+fallback. It retains Preview 9's game-specific widescreen correction and
+restart-required aspect changes. It also retains Preview 6's corrected Gekko
+executable module.
 It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
@@ -305,7 +306,7 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 9** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 10** IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game

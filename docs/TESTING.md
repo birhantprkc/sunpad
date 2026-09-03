@@ -316,10 +316,11 @@ settings, signing material, or personal build path.
 
 On September 3, Issue #23 report `SP-DCACA682` isolated a ghosted scene copy
 to Sunshine's heat-distortion pass while experimental 16:9 output was active.
-The Preview 8 candidate applies Dolphin's documented reversible GMSE01
-heatwave bypass only in 16:9 and Fill Screen, restores the original instruction
-in Original 4:3, and reapplies the selected state after boot or foreground
-resume. The runtime compiled independently from clean checkouts at ModernGekko
+The Preview 8 candidate applied Dolphin's documented GMSE01 heatwave bypass
+only in 16:9 and Fill Screen and was intended to restore the original
+instruction in Original 4:3. The later Issue #12 log and source audit below
+showed that its one-shot removal path did not actually restore guest memory.
+The runtime compiled independently from clean checkouts at ModernGekko
 `0514d9f`, vendored Dolphin/RecompCore `13e4920`, ModernGekko-Template
 `1ee85bb`, and DolRecomp `fa0cf61`; the working-checkout rebuild, unsigned
 Release iPhoneOS app link, dependency-patch reconstruction, and complete
@@ -364,6 +365,24 @@ rising, then recovered by the next snapshot and remained at 30 FPS. Resident
 memory levelled near 484 MiB. The report covers only about 80 seconds of runtime
 and contains no scene, frequency answer, or screenshot, so it is positive
 community hands-on evidence rather than long-session closure of Issue #12.
+
+On September 3, the same reporter supplied Preview 8 report `SP-83B955CD` and
+identified Noki Bay as the heavy scene. The build-6 log covers an iPhone 15 Pro
+at original 30 FPS with Low Power Mode off. It records repeated live aspect and
+scale changes, including 16:9 followed by Original 4:3, and six verification
+failures for the `0x8019D600`–`0x801A1600` StaticRecomp chunk. At 1× / Original
+4:3 the later heavy interval stayed mostly around 22–28 FPS / 0.76–0.94 speed
+with Serious thermals and the combined CPU-GPU thread near saturation, then
+returned to 30 FPS without a setting change. Source inspection found that the
+heatwave restore path called Dolphin's one-shot `UnsetPatch`, whose
+implementation does not restore guest bytes. The original GMSE01 DOL at SHA-256
+`13934c863d649b1ddca1ca4d7748f49d28a571685cbee5fb1542545c32869955`
+maps `0x8019F83C` to file offset `0x0019C77C` and contains `0x7C0802A6`
+(`mflr r0`). Preview 10 writes those bytes back through the invalidating patch
+API and suppresses redundant patch applications. The focused source guard,
+patch reconstruction against pinned ModernGekko `0514d9f`, and an incremental
+iPhoneOS `libmoderngekko.a` rebuild pass. A cold, direct-to-Noki reporter retest
+at 1× / Original 4:3 remains the acceptance gate.
 
 The same report repeated two pre-existing startup messages. The memory-space
 error is the unused 64 GiB large-entry-map reservation inherited by
