@@ -177,7 +177,8 @@ larger iPads:
 - **Right:** camera stick, A/B/X/Y diamond, Z, R, and Start.
 - **Menu:** the persistent **•••** button opens render resolution, aspect
   ratio, control, game-data, save, and diagnostic-log actions. Original 4:3
-  is the default; 16:9 and Fill Screen are marked experimental.
+  is the default; 16:9 and Fill Screen are marked experimental and apply on
+  the next launch.
 - **Customize:** Move mode lets controls be dragged and saves normalized
   positions per device class; Reset restores the default layout.
 - **Controller handoff:** a connected physical controller can hide the touch

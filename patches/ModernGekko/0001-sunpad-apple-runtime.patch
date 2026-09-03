@@ -87,13 +87,17 @@ index af75a25..e298aca 100644
    std::filesystem::path user_directory;
    ModuleSource module;
    std::vector<std::filesystem::path> mod_directories;
-@@ -65,7 +95,20 @@ struct RuntimeConfig
+@@ -65,7 +95,24 @@ struct RuntimeConfig
    bool fullscreen = false;
    bool allow_interpreter = false;
    bool show_fps_in_title = true;
 +  // Test-only Sunshine frame-rate experiment. When enabled for GMSE01, the
 +  // runtime activates only Dolphin's bundled 60FPS Gecko code at boot.
 +  bool enable_gmse01_60fps = false;
++  // Sunshine-specific wide-rendering correction. This uses Dolphin's bundled
++  // GMSE01 Gecko code instead of the generic projection hack, which corrupts
++  // shadow, reflection, and culling passes in this game.
++  bool enable_gmse01_widescreen = false;
 +  // Optional diagnostic clock multiplier for weak-device testing. A value
 +  // below 1.0 reduces emulated CPU work and may change guest timing.
 +  std::optional<float> emulated_cpu_clock_scale;
@@ -108,7 +112,7 @@ index af75a25..e298aca 100644
  };
  
  enum class RuntimeErrorCode
-@@ -127,6 +170,10 @@ public:
+@@ -127,6 +174,10 @@ public:
    const RuntimeConfig& GetConfig() const;
    const GameMetadata& GetGameMetadata() const;
    const std::string& GetWindowTitle() const;
@@ -283,17 +287,18 @@ index 981e098..4c7e985 100644
    const ModernGekkoModuleRequirements requirements = {
        MODERNGEKKO_CPU_ABI_VERSION, static_cast<std::uint32_t>(sizeof(CPUState)),
        inspected.metadata->disc_id.c_str()};
-@@ -240,10 +344,44 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -240,10 +344,59 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
      UICommon::Init();
      impl->ui_initialized = true;
    }
 +
-+  if (impl->config.enable_gmse01_60fps) {
++  if (impl->config.enable_gmse01_60fps ||
++      impl->config.enable_gmse01_widescreen) {
 +    if (impl->metadata.disc_id != "GMSE01") {
 +      if (impl->ui_initialized)
 +        UICommon::Shutdown();
 +      return {{}, RuntimeError{RuntimeErrorCode::InvalidGame,
-+                               "experimental 60FPS is available only for GMSE01"}};
++                               "GMSE01 boot codes are available only for GMSE01"}};
 +    }
 +
 +    Common::IniFile empty_local_ini;
@@ -301,21 +306,35 @@ index 981e098..4c7e985 100644
 +                                  empty_local_ini);
 +    const auto sixty_fps = std::ranges::find(codes, std::string("60FPS"),
 +                                             &Gecko::GeckoCode::name);
-+    if (sixty_fps == codes.end()) {
++    const auto widescreen = std::ranges::find(codes, std::string("Widescreen"),
++                                              &Gecko::GeckoCode::name);
++    if ((impl->config.enable_gmse01_60fps && sixty_fps == codes.end()) ||
++        (impl->config.enable_gmse01_widescreen && widescreen == codes.end())) {
 +      if (impl->ui_initialized)
 +        UICommon::Shutdown();
 +      return {{}, RuntimeError{RuntimeErrorCode::InitializationFailed,
-+                               "bundled GMSE01 60FPS Gecko code is unavailable"}};
++                               "a requested bundled GMSE01 Gecko code is unavailable"}};
 +    }
 +
 +    for (auto& code : codes)
-+      code.enabled = &code == &*sixty_fps;
++      code.enabled = (impl->config.enable_gmse01_60fps && &code == &*sixty_fps) ||
++                     (impl->config.enable_gmse01_widescreen && &code == &*widescreen);
 +    Gecko::UpdateSyncedCodes(codes);
 +    Config::SetBase(Config::MAIN_ENABLE_CHEATS, true);
 +    Config::SetBase(Config::SESSION_CODE_SYNC_OVERRIDE, true);
-+    std::fprintf(stderr,
-+                 "[moderngekko] experimental GMSE01 60FPS boot code enabled; "
-+                 "StaticRecomp SMC/fallback counters follow at shutdown\n");
++    std::fprintf(
++        stderr,
++        "[moderngekko] GMSE01 boot codes enabled: widescreen=%d 60FPS=%d; "
++        "StaticRecomp SMC/fallback counters follow at shutdown\n",
++        impl->config.enable_gmse01_widescreen, impl->config.enable_gmse01_60fps);
++  } else {
++    // Runtime::Create can be called again in the same app process after a game
++    // data import. Do not let a prior session's synchronized Gecko list or
++    // cheat flags leak into a new supported-mode boot.
++    const std::vector<Gecko::GeckoCode> no_codes;
++    Gecko::UpdateSyncedCodes(no_codes);
++    Config::SetBase(Config::MAIN_ENABLE_CHEATS, false);
++    Config::SetBase(Config::SESSION_CODE_SYNC_OVERRIDE, false);
 +  }
    Config::SetBase(Config::MAIN_FULLSCREEN, impl->config.fullscreen);
  
@@ -328,7 +347,7 @@ index 981e098..4c7e985 100644
  #ifdef _WIN32
    else
      impl->platform = Platform::CreateWin32Platform();
-@@ -267,12 +405,27 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -267,12 +420,27 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
                           "the requested Dolphin host platform is unavailable"}};
    }
  
@@ -356,7 +375,7 @@ index 981e098..4c7e985 100644
    if (!impl->config.graphics.backend.empty())
      Config::SetBase(Config::MAIN_GFX_BACKEND, impl->config.graphics.backend);
    else if (impl->config.headless)
-@@ -284,6 +432,14 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -284,6 +447,14 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
    Config::SetBase(Config::GFX_SHADER_COMPILATION_MODE,
                    ShaderCompilationMode::AsynchronousUberShaders);
    Config::SetBase(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, true);
@@ -371,7 +390,7 @@ index 981e098..4c7e985 100644
    const std::vector<std::string> audio_backends =
        AudioCommon::GetSoundBackends();
    if (impl->config.headless) {
-@@ -292,6 +448,9 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -292,6 +463,9 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
               !std::ranges::contains(audio_backends,
                                      impl->config.audio.backend)) {
      constexpr std::array preferred_backends = {
@@ -381,7 +400,7 @@ index 981e098..4c7e985 100644
          BACKEND_CUBEB, BACKEND_PULSEAUDIO, BACKEND_ALSA};
      const auto preferred =
          std::ranges::find_if(preferred_backends, [&](const char *backend) {
-@@ -332,6 +491,7 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
+@@ -332,6 +506,7 @@ RuntimeCreateResult Runtime::Create(RuntimeConfig config) {
  Runtime::~Runtime() {
    RequestStop();
    if (m_impl->booted) {
@@ -389,7 +408,7 @@ index 981e098..4c7e985 100644
      Core::Stop(Core::System::GetInstance());
      Core::Shutdown(Core::System::GetInstance());
    }
-@@ -345,6 +505,7 @@ Runtime::~Runtime() {
+@@ -345,6 +520,7 @@ Runtime::~Runtime() {
    s_window_title.clear();
    s_show_fps_in_title = true;
    s_runtime_active = false;
@@ -397,7 +416,7 @@ index 981e098..4c7e985 100644
  }
  
  RuntimeRunResult Runtime::Run() {
-@@ -356,12 +517,13 @@ RuntimeRunResult Runtime::Run() {
+@@ -356,12 +532,13 @@ RuntimeRunResult Runtime::Run() {
    std::unique_ptr<BootParameters> boot;
    {
      std::lock_guard lock(s_runtime_mutex);
@@ -414,7 +433,7 @@ index 981e098..4c7e985 100644
      s_boot_session_data.reset();
    }
    if (!boot) {
-@@ -372,7 +534,10 @@ RuntimeRunResult Runtime::Run() {
+@@ -372,7 +549,10 @@ RuntimeRunResult Runtime::Run() {
    }
    m_impl->state_hook =
        Core::AddOnStateChangedCallback([this](Core::State state) {
@@ -426,7 +445,7 @@ index 981e098..4c7e985 100644
            m_impl->platform->Stop();
        });
    if (!BootManager::BootCore(Core::System::GetInstance(), std::move(boot),
-@@ -383,21 +545,64 @@ RuntimeRunResult Runtime::Run() {
+@@ -383,21 +560,64 @@ RuntimeRunResult Runtime::Run() {
                           "Dolphin could not boot sys/main.dol"}};
    }
    m_impl->booted = true;
@@ -496,7 +515,7 @@ index 981e098..4c7e985 100644
    Core::Stop(Core::System::GetInstance());
    Core::Shutdown(Core::System::GetInstance());
    m_impl->booted = false;
-@@ -431,4 +626,46 @@ const GameMetadata &Runtime::GetGameMetadata() const {
+@@ -431,4 +641,46 @@ const GameMetadata &Runtime::GetGameMetadata() const {
    return m_impl->metadata;
  }
  const std::string &Runtime::GetWindowTitle() const { return m_impl->title; }

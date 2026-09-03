@@ -439,9 +439,12 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
     ]];
 
     UIMenu *aspectMenu = [UIMenu menuWithTitle:@"Aspect Ratio" children:@[
-        [self aspectRatioAction:@"Original 4:3" mode:SunPadAspectRatioOriginal],
-        [self aspectRatioAction:@"16:9 (Experimental)" mode:SunPadAspectRatioWidescreen],
-        [self aspectRatioAction:@"Fill Screen (Experimental)" mode:SunPadAspectRatioFillScreen],
+        [self aspectRatioAction:@"Original 4:3 (Restart Required)"
+                           mode:SunPadAspectRatioOriginal],
+        [self aspectRatioAction:@"16:9 (Experimental, Restart Required)"
+                           mode:SunPadAspectRatioWidescreen],
+        [self aspectRatioAction:@"Fill Screen (Experimental, Restart Required)"
+                           mode:SunPadAspectRatioFillScreen],
     ]];
 
     UIMenu *displayMenu = [UIMenu menuWithTitle:@"Display"
@@ -758,6 +761,20 @@ static CGFloat SunPadDefaultSizeScaleForControl(UIView *view, NSString *identifi
         [[SunPadSettings sharedSettings] synchronize];
         [[[UISelectionFeedbackGenerator alloc] init] selectionChanged];
         [weakSelf refreshMenuButton];
+
+        NSString *message = mode == SunPadAspectRatioOriginal ?
+            @"Original 4:3 is selected. Close and reopen SunPad to apply it." :
+            @"The game-specific Sunshine widescreen correction is selected. Close and reopen SunPad to apply it.";
+        UIAlertController *alert =
+            [UIAlertController alertControllerWithTitle:@"Restart Required"
+                                                message:message
+                                         preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                  style:UIAlertActionStyleDefault
+                                                handler:nil]];
+        [weakSelf.window.rootViewController presentViewController:alert
+                                                         animated:YES
+                                                       completion:nil];
     }];
     aspectAction.state = [SunPadSettings sharedSettings].aspectRatioMode == mode ?
         UIMenuElementStateOn : UIMenuElementStateOff;
