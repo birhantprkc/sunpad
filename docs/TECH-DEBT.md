@@ -1,7 +1,7 @@
 # Performance and stability technical debt
 
 - **Assessment date:** 2026-08-12
-- **Evidence updated through:** 2026-09-01 (Preview 6 Issue #12 follow-up)
+- **Evidence updated through:** 2026-09-03 (Preview 8 Issue #12 Noki Bay log)
 - **SunPad source assessed:** `54a5f78965b9075bb25427492a266eaad756f64c`
 - **Scope:** GMSE01 USA revision 0, Apple ARM64, original 30 FPS and the
   default-off experimental 60 FPS mode
@@ -151,6 +151,17 @@ must be measured rather than dismissed.
   only about 80 seconds and supplied no scene, frequency, or screenshot. This
   is improved short-run evidence, not a resolved long-session result or a
   subsystem attribution.
+- The September 3 Preview 8 report (`SP-83B955CD`) isolates one regression in
+  the aspect-ratio workaround. Its process selected 16:9 before returning to
+  Original 4:3, then logged the `0x8019D600`–`0x801A1600` chunk as modified six
+  times. Dolphin's one-shot `UnsetPatch` does not restore guest memory, so the
+  `0x8019F83C` heatwave entry stayed patched and the full 16 KiB chunk remained
+  interpreter-only. The run later spent several minutes around 22–28 FPS at
+  1× / Original 4:3 in Noki Bay with the combined CPU-GPU thread saturated and
+  Serious thermals, then recovered without another settings change. Preview 10
+  restores the DOL-verified `0x7C0802A6` instruction and re-invalidates the
+  chunk. This removes the confirmed fallback leak; it does not yet prove that
+  every Noki Bay slowdown or thermal ceiling is resolved.
 
 ## Important non-solutions
 

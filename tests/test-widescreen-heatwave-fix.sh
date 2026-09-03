@@ -25,12 +25,18 @@ grep -Fq 'Gecko::UpdateSyncedCodes(no_codes);' "$runtime_patch"
 grep -Fq 'Config::SetBase(Config::MAIN_ENABLE_CHEATS, false);' "$runtime_patch"
 grep -Fq 'GMSE01_HEATWAVE_ENTRY = 0x8019F83Cu' "$runtime_patch"
 grep -Fq 'PPC_BLR = {0x4E, 0x80, 0x00, 0x20}' "$runtime_patch"
+grep -Fq 'GMSE01_HEATWAVE_ORIGINAL = {0x7C, 0x08, 0x02, 0xA6}' "$runtime_patch"
+grep -Fq 'gmse01_heatwave_patch_applied{false}' "$runtime_patch"
 grep -Fq 'std::thread startup_patch_thread([this]' "$runtime_patch"
 grep -Fq 'Core::AddOnStateChangedCallback([this](Core::State state)' "$runtime_patch"
 grep -Fq 'Core::State::Starting)' "$runtime_patch"
 grep -Fq 'Core::State::Running)' "$runtime_patch"
 grep -Fq 'debug.SetPatch(guard, GMSE01_HEATWAVE_ENTRY' "$runtime_patch"
-grep -Fq 'debug.UnsetPatch(guard, GMSE01_HEATWAVE_ENTRY);' "$runtime_patch"
+grep -Fq 'std::vector<u8>(GMSE01_HEATWAVE_ORIGINAL.begin(),' "$runtime_patch"
+if grep -Fq 'debug.UnsetPatch(guard, GMSE01_HEATWAVE_ENTRY);' "$runtime_patch"; then
+  echo "One-shot UnsetPatch does not restore the original GMSE01 instruction" >&2
+  exit 1
+fi
 
 if [[ -f "$repo_root/ref/ModernGekko/vendor/dolphin/Data/Sys/GameSettings/GMSE01.ini" ]]; then
   grep -Fq -- '$Widescreen [gamemasterplc]' \

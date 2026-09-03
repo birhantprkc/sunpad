@@ -138,10 +138,12 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 - iPhone 14 boot is proven but performance is below the iPad experience even
   at 1×; iPhone 15 Pro or newer is recommended for iPhone development testing.
 - A community iPhone 15 Pro report describes slowdown after several minutes,
-  and physical-iPhone 14 testing reproduced the single-core ceiling. A short
-  Preview 6 follow-up on that iPhone 15 Pro was significantly more stable at
-  the supported 30 FPS / Original 4:3 / 1x baseline, with one brief recovered
-  dip, but no scene-matched long-session acceptance. A
+  and physical-iPhone 14 testing reproduced the single-core ceiling. A later
+  Preview 8 Noki Bay log also exposed a separate restoration bug: after 16:9
+  was selected, Dolphin's one-shot patch removal did not restore the original
+  heatwave instruction, so a 16 KiB StaticRecomp chunk remained interpreter-only
+  even after returning to 4:3. Preview 10 restores the verified instruction;
+  a cold scene-matched reporter retest remains required. A
   default-off **Reduced CPU Clock 90% (Unstable, Restart Required)** exposes
   the synchronized 90%-clock, `userInitiated` profile for wider evidence
   collection. Two confirmed-gameplay iPhone 14 traces showed CPU headroom at
