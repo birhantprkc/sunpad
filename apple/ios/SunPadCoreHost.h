@@ -45,8 +45,8 @@ NS_ASSUME_NONNULL_BEGIN
  * to the running runtime. Safe to call from any thread. */
 - (void)setRenderScale:(NSInteger)scale;
 
-/* Applies the output aspect ratio without resizing the Metal view or touch
- * overlay. Safe to call from any thread. */
+/* Records that a changed output aspect ratio will apply on the next launch.
+ * The boot-time GMSE01 widescreen code cannot be safely removed live. */
 - (void)setAspectRatioMode:(SunPadAspectRatioMode)mode;
 
 /* Current emulated FPS from the runtime (0 if not booted). */

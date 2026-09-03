@@ -1,19 +1,19 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 8 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 9 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 8 prevents Sunshine's heat-distortion pass from drawing a ghosted copy
-of the scene in the experimental 16:9 and Fill Screen modes. The effect remains
-available in Original 4:3. It retains Preview 7's stable iPad menu and grouped
-**Display** and **Controls** settings, plus Preview 6's corrected executable
-module and supported-mode recovery controls.
+Preview 9 replaces Dolphin's generic forced-wide projection with its bundled
+GMSE01-specific widescreen correction to address the shadow seams and
+duplicated geometry reported after Preview 8. It retains the targeted
+heat-distortion bypass in 16:9 and Fill Screen. Aspect changes now require
+closing and reopening SunPad. Original 4:3 remains the stable default.
 **••• → Unstable Experiments → Use Supported 30 FPS Mode** restores the
 supported full CPU clock and original 30 FPS mode for the next launch.
 
 1. Download
-   [`SunPad-0.1.0-preview.8-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.8/SunPad-0.1.0-preview.8-unsigned.ipa)
-   from the [Preview 8 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.8).
+   [`SunPad-0.1.0-preview.9-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.9/SunPad-0.1.0-preview.9-unsigned.ipa)
+   from the [Preview 9 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.9).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

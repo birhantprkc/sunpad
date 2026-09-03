@@ -55,9 +55,12 @@ physical-device run must still confirm continuous audible output; see
 [AUDIO_ISSUE.md](AUDIO_ISSUE.md) before changing output buffering again. The
 persisted 1×-4× render-resolution choice is applied live
 through `Config::GFX_EFB_SCALE` (at boot and on change).
-Aspect changes are applied through Dolphin's graphics config without resizing
-the Metal surface or its separate UIKit touch overlay, so control placement is
-unchanged. Original 4:3 is the default on iPhone and iPad.
+Aspect changes apply on the next launch without resizing the Metal surface or
+its separate UIKit touch overlay, so control placement is unchanged. Original
+4:3 is the default on iPhone and iPad. Experimental wide modes use Dolphin's
+bundled GMSE01 widescreen code with the generic projection hack disabled; this
+avoids applying a camera multiplier to Sunshine's shadow, reflection, and
+culling passes.
 
 ## Game data on mobile
 

@@ -61,9 +61,11 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
    Display groups 1x native/2x/3x/4x render resolution and aspect ratio;
    Controls groups controller mapping and touch settings; Unstable Experiments,
    icon-labelled Game Data & Saves, and Report a Problem remain distinct.
-   Aspect changes do not move the separate touch overlay. Sunshine's
-   incompatible heat-distortion pass is suppressed only while experimental
-   16:9 or Fill Screen output is active, then restored in Original 4:3.
+   Aspect changes apply on the next launch and do not move the separate touch
+   overlay. Experimental wide modes use Dolphin's GMSE01-specific widescreen
+   code instead of its generic projection hack. Sunshine's incompatible
+   heat-distortion pass is suppressed only while 16:9 or Fill Screen output is
+   active, then restored in Original 4:3.
 8. No runtime PowerPC JIT on iOS: interpreter fallback + software vertex
    loader.
 9. **On-device game-data import** is implemented: security-scoped document

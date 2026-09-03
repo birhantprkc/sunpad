@@ -211,6 +211,17 @@ static void SunPadRuntimeLogCallback(
         config.log_callback = SunPadRuntimeLogCallback;
         NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
         BOOL stableBaseline = [arguments containsObject:@"-sunpadStableBaseline"];
+        NSNumber *savedAspectValue = [[NSUserDefaults standardUserDefaults]
+            objectForKey:@"SunPadAspectRatioMode"];
+        SunPadAspectRatioMode savedAspect = savedAspectValue ?
+            (SunPadAspectRatioMode)savedAspectValue.integerValue : SunPadAspectRatioOriginal;
+        if (savedAspect < SunPadAspectRatioOriginal ||
+            savedAspect > SunPadAspectRatioFillScreen) {
+            savedAspect = SunPadAspectRatioOriginal;
+        }
+        if (stableBaseline)
+            savedAspect = SunPadAspectRatioOriginal;
+        config.enable_gmse01_widescreen = savedAspect != SunPadAspectRatioOriginal;
         BOOL launchArgument60FPS =
             [arguments containsObject:@"-sunpadExperimental60FPS"];
         BOOL menuPreference60FPS = [SunPadSettings sharedSettings].experimental60FPS;
@@ -325,11 +336,9 @@ static void SunPadRuntimeLogCallback(
         SunPadLog(@"runtime render scale=%ld source=%@", (long)clampedSavedScale,
                   stableBaseline ? @"stable baseline launch argument" : @"persisted");
 
-        NSNumber *savedAspectValue = [[NSUserDefaults standardUserDefaults]
-            objectForKey:@"SunPadAspectRatioMode"];
-        SunPadAspectRatioMode savedAspect = savedAspectValue ?
-            (SunPadAspectRatioMode)savedAspectValue.integerValue : SunPadAspectRatioOriginal;
-        [self applyAspectRatioMode:savedAspect source:@"persisted"];
+        [self applyAspectRatioMode:savedAspect
+                           source:stableBaseline ? @"stable baseline launch argument" :
+                                                   @"persisted"];
 
         // Open the input FIFO for writing (blocks until the runtime reads it).
         NSString *pipePath = [[userDirectory stringByAppendingPathComponent:@"Pipes"]
@@ -422,7 +431,7 @@ static void SunPadRuntimeLogCallback(
     case SunPadAspectRatioWidescreen:
         modeName = @"widescreen-16:9";
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, AspectMode::ForceWide);
-        Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, true);
+        Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false);
         break;
     case SunPadAspectRatioFillScreen: {
         modeName = @"fill-screen";
@@ -432,7 +441,7 @@ static void SunPadRuntimeLogCallback(
         Config::SetCurrent(Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, width);
         Config::SetCurrent(Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, height);
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, AspectMode::CustomStretch);
-        Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, true);
+        Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false);
         break;
     }
     case SunPadAspectRatioOriginal:
@@ -446,14 +455,15 @@ static void SunPadRuntimeLogCallback(
         if (_runtime)
             _runtime->SetGMSE01HeatwaveSuppressed(false);
     }
-    SunPadLog(@"runtime aspect mode=%@ heatwaveSuppressed=%d source=%@",
-              modeName, suppressHeatwave, source);
+    SunPadLog(@"runtime aspect mode=%@ gmse01WidescreenCode=%d genericWidescreenHack=0 "
+               "heatwaveSuppressed=%d source=%@",
+              modeName, suppressHeatwave, suppressHeatwave, source);
 }
 
 - (void)setAspectRatioMode:(SunPadAspectRatioMode)mode {
     if (!_running->load())
         return; // Runtime not booted yet; the mode applies at boot.
-    [self applyAspectRatioMode:mode source:@"live"];
+    SunPadLog(@"runtime aspect pending=%ld source=menu nextLaunch=1", (long)mode);
 }
 
 - (double)currentFPS {

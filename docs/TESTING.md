@@ -331,7 +331,24 @@ at 26,461,143
 bytes and SHA-256
 `4748f800b42f112367c66e40104edb95d636c58a4b75c5dc9fb59d0353df08a2`;
 both passed ZIP and package audits. Physical visual confirmation at the
-reporter's Delfino Plaza scene remains open.
+reporter's Delfino Plaza scene remained open. The reporter's full-resolution
+Preview 8 follow-up supplied seven screenshots and report `SP-5EDC6421` from an
+iPhone 15 Pro. The log confirms that the 16:9 selection and heatwave bypass
+were active. The original full-scene ghost was substantially reduced, while
+the captures exposed separate detached-shadow, hard-seam, and duplicated
+geometry failures at both full-speed 30 FPS and a later thermally serious
+sample. The next candidate replaces Dolphin's generic widescreen projection
+hack with its bundled GMSE01 widescreen Gecko code, keeps the heatwave bypass,
+and makes aspect changes restart-required. Static checks, reverse patch
+reconstruction, a clean iPhoneOS runtime build at pinned ModernGekko `0514d9f`
+and RecompCore `13e4920`, and an unsigned Release iPhoneOS app link against
+that clean runtime pass. Two independently packaged Preview 9 IPAs are
+byte-identical at 26,460,385 bytes and SHA-256
+`2c1a71ef0d7b9542a29a0fbd9551a2f00592c516b6a86d6b06af4b87c2f5632f`;
+both pass ZIP and package audits and reuse the audited Preview 8 module at
+SHA-256
+`070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
+Scene-matched physical acceptance remains required.
 
 On September 1, the iPhone 15 Pro reporter for Issue #12 supplied Preview 6
 report `SP-133DE3C9` and described the build as significantly more stable. The

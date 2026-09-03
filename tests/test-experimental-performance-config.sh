@@ -63,7 +63,7 @@ grep -Fq -- 'experimental-qos-only-100' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 grep -Fq -- 'runtime render scale=%ld source=live' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
-grep -Fq -- 'runtime aspect mode=%@ heatwaveSuppressed=%d source=%@' \
+grep -Fq -- 'runtime aspect mode=%@ gmse01WidescreenCode=%d genericWidescreenHack=0 ' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"
 
 echo "Experimental performance configuration checks passed"
