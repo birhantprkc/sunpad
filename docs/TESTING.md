@@ -384,6 +384,19 @@ patch reconstruction against pinned ModernGekko `0514d9f`, and an incremental
 iPhoneOS `libmoderngekko.a` rebuild pass. A cold, direct-to-Noki reporter retest
 at 1× / Original 4:3 remains the acceptance gate.
 
+The Preview 10 release was rebuilt from merged `main` at
+`cec7aa1c871edd95873afb75486b78fb7a80c127` after all four PR checks passed.
+The unsigned Release iPhoneOS app linked against the corrected pinned runtime
+and reused the unchanged audited GMSE01 module at SHA-256
+`070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
+Two independent packages were byte-identical at 26,460,496 bytes and SHA-256
+`4449bedd7cd72a2e6c7e92c9b3a9dc507c035cb3a2bef5d6506ff1dcf6e6667b`;
+both passed ZIP and package audits. A fresh download from the published
+Preview 10 release matched the local artifact byte-for-byte, reported the same
+GitHub asset digest and size, and passed the package audit again. The release
+tag and remote `main` both resolve to the merge commit above. Issue #12 and
+Issue #23 remain open for the requested physical iPhone retests.
+
 The same report repeated two pre-existing startup messages. The memory-space
 error is the unused 64 GiB large-entry-map reservation inherited by
 StaticRecomp's empty invalidation cache; the follow-up mainline runtime disables
