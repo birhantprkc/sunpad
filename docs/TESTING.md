@@ -348,7 +348,10 @@ byte-identical at 26,460,385 bytes and SHA-256
 both pass ZIP and package audits and reuse the audited Preview 8 module at
 SHA-256
 `070a989e7105898cf1e3f08c4005051c900adb31c62678172b59063b0dec4041`.
-Scene-matched physical acceptance remains required.
+A fresh download from the published Preview 9 release is byte-identical to the
+local candidate, reports the same GitHub asset digest and size, and passes the
+ZIP and package audits again. Scene-matched physical acceptance remains
+required.
 
 On September 1, the iPhone 15 Pro reporter for Issue #12 supplied Preview 6
 report `SP-133DE3C9` and described the build as significantly more stable. The
