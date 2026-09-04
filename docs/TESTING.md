@@ -449,6 +449,36 @@ release artifact and passed the package audit again. No Apple TV appeared in
 `devicectl list devices`, so none of these results is a physical boot,
 controller, gameplay, audio, save, lifecycle, or performance pass.
 
+## Experimental tvOS Preview 12 release evidence (2026-09-05)
+
+Preview 12 was assembled from merged `main` commit
+`fd134864d60a231b7bbdd33885e248a67b3d40d3`. The accepted contributor patch
+set recreated cleanly from pinned ModernGekko `0514d9f` and vendored
+Dolphin/RecompCore `13e4920`; two independent GitHub jobs then configured and
+compiled the complete patched tvOS Simulator runtime. A separate local device
+build completed all 1,480 compile/link steps. The provisioned arm64 TVOS core
+library had SHA-256
+`5db0f90a841179aab95756e5d470ba13619d64234b59119ec9f7f852135280d8`.
+
+None of the accepted changes modifies the game-generated executable module.
+The release therefore retains the audited Preview 11 module, verified
+byte-identical to a fresh anonymous Preview 11 download, with SHA-256
+`5d1aed355123d827a9cfbac76ca85cba1888884de28f3e16325d3817382e6d69`.
+The exact merged source built the unsigned Release `SunPadTV.app` for
+`generic/platform=tvOS`; the final app executable SHA-256 was
+`eefe00bf0c6b4283109e8358e2eeea50c6b09ad28dbe3e0522f991f67ba870a1`.
+
+The app and package passed the repository's architecture, minimum-version,
+privacy, signing-material, credential, private-path, game-data, save, and ZIP
+audits. Two independent packages were byte-identical at 24,994,750 bytes and
+SHA-256
+`1d973c23103a22d69c1c8fb366f47fc0d91f7d3e65d65953e3771d9bc2c31e04`.
+GitHub reports that same size and digest for the Preview 12 asset. A fresh
+anonymous download was byte-identical to the local release artifact and passed
+the package audit again. No Apple TV is paired with this Mac; the contributor
+hardware evidence and remaining exact-artifact acceptance gates are bounded in
+the matrix above.
+
 ## Audio root-cause verification (2026-08-08, Apple Silicon Mac)
 
 All rows use Dolphin's producer-side `[DSP] DumpAudio` capture
