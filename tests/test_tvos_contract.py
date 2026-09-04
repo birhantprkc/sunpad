@@ -27,6 +27,9 @@ class TvOSContractTests(unittest.TestCase):
         with (ROOT / "apple/tvos/Info.plist").open("rb") as handle:
             info = plistlib.load(handle)
         self.assertIn("TARGETED_DEVICE_FAMILY = 3;", project)
+        self.assertIn('SUPPORTED_PLATFORMS = "appletvos appletvsimulator";', project)
+        self.assertIn("Provisioned/$(PLATFORM_NAME)/libs", project)
+        self.assertIn("Provisioned/$(PLATFORM_NAME)/gGMSE01_recomp.dylib", project)
         self.assertTrue(info["GCSupportsControllerUserInteraction"])
         self.assertEqual(
             info["GCSupportedGameControllers"], [{"ProfileName": "ExtendedGamepad"}]
@@ -40,13 +43,77 @@ class TvOSContractTests(unittest.TestCase):
         self.assertIn('stringByAppendingPathComponent:@"gGMSE01_recomp.dylib"', host)
         self.assertIn("13934c863d649b1ddca1ca4d7748f49d28a571685cbee5fb1542545c32869955", host)
         self.assertIn("settings.renderScale = 1", host)
-        self.assertIn("settings.aspectRatioMode = SunPadAspectRatioOriginal", host)
+        self.assertIn("settings.aspectRatioMode = SunPadAspectRatioWidescreen", host)
+        self.assertIn(
+            "config.enable_gmse01_widescreen = savedAspect != SunPadAspectRatioOriginal",
+            self.text("apple/ios/SunPadCoreHost.mm"),
+        )
+        self.assertIn(
+            "Config::SetCurrent(Config::GFX_WIDESCREEN_HACK, false)",
+            self.text("apple/ios/SunPadCoreHost.mm"),
+        )
         self.assertIn("settings.experimental60FPS = NO", host)
         self.assertIn("settings.experimentalPerformanceMode = NO", host)
-        self.assertIn("SunPadInputMixer.sharedMixer", host)
+        self.assertIn("SunPadTVReadPadSnapshot", host)
+        self.assertIn("SunPadTVSetRumble", host)
+        self.assertIn("id<CHHapticPatternPlayer>", host)
+        self.assertIn("createPlayerWithPattern", host)
+        self.assertNotIn("CHHapticAdvancedPatternPlayer", host)
+        self.assertNotIn("sendParameters", host)
+        self.assertIn("dispatch_queue_create", host)
+        self.assertNotIn("inputTimer", host)
+        self.assertNotIn("SunPadInputMixer.sharedMixer", host)
         self.assertIn("GCControllerDidConnectNotification", host)
         self.assertIn("GCControllerDidDisconnectNotification", host)
         self.assertNotIn("UIDocumentPicker", host)
+
+    def test_tvos_controller_bridge_is_native_and_direct(self):
+        core_host = self.text("apple/ios/SunPadCoreHost.mm")
+        patch = self.text(
+            "patches/ModernGekko-dolphin/0002-sunpad-tvos-controller.patch"
+        )
+        prepare = self.text("scripts/prepare-tvos-dependencies.sh")
+        self.assertIn("#if !TARGET_OS_TV", core_host)
+        self.assertIn("SunPadTVReadPadSnapshot", patch)
+        self.assertIn("SunPadTVSetRumble", patch)
+        self.assertIn("status.substickX = input.c_stick_x", patch)
+        self.assertIn("status.triggerRight = input.trigger_r", patch)
+        self.assertIn("status.isConnected = input.connected != 0", patch)
+        self.assertIn("0002-sunpad-tvos-controller.patch", prepare)
+
+    def test_tvos_rumble_teardown_is_owner_safe(self):
+        host = self.text("apple/tvos/SunPadTVAppDelegate.mm")
+        setup = host.split(
+            "- (void)configureRumbleForController:(GCController *)controller {", 1
+        )[1].split(
+            "- (void)teardownRumble", 1
+        )[0]
+        self.assertLess(
+            setup.index("startAndReturnError"),
+            setup.index("createPlayerWithPattern"),
+        )
+        teardown = host.split("- (void)teardownRumble {", 1)[1].split(
+            "- (BOOL)setRumbleEnabled:", 1
+        )[0]
+        self.assertLess(
+            teardown.index("if (strongSelf == nil)"),
+            teardown.index("strongSelf->_hapticEngine"),
+        )
+
+    def test_tvos_boot_never_waits_for_controller(self):
+        host = self.text("apple/tvos/SunPadTVAppDelegate.mm")
+        view_did_appear = host.split("- (void)viewDidAppear:", 1)[1].split(
+            "- (void)startControllerInput", 1
+        )[0]
+        self.assertLess(
+            view_did_appear.index("[self startControllerInput]"),
+            view_did_appear.index("[self attemptStart]"),
+        )
+        self.assertNotIn("SunPadTVHasExtendedController", host)
+        self.assertNotIn("startWirelessControllerDiscovery", host)
+        self.assertNotIn("Connect an Extended Gamepad", host)
+        self.assertNotIn("Siri Remote operates", host)
+        self.assertNotIn("SUNPAD_TVOS_ALLOW_CONTROLLERLESS_DIAGNOSTICS", host)
 
     def test_build_produces_core_and_tvos_module(self):
         build = self.text("scripts/tvos-build-core-device.sh")
@@ -57,13 +124,38 @@ class TvOSContractTests(unittest.TestCase):
         self.assertIn("-DCMAKE_SYSTEM_NAME=tvOS", build)
         self.assertIn("gGMSE01_recomp.dylib", provision)
         self.assertNotIn("Xcode-27", build + provision)
-        self.assertIn("platform +TVOS", provision)
+        self.assertIn("platform=TVOS", provision)
+        simulator = self.text("scripts/tvos-build-core-simulator.sh")
+        self.assertIn("SUNPAD_TVOS_SDK=appletvsimulator", simulator)
+        self.assertIn('SDK="${SUNPAD_TVOS_SDK:-appletvos}"', build)
+        self.assertIn('SUNPAD_TVOS_DEPENDENCY_ROOT', build + provision)
+        self.assertIn("TVOSSIMULATOR", provision)
+        self.assertNotIn("startWirelessControllerDiscovery", self.text("apple/tvos/SunPadTVAppDelegate.mm"))
+
+    def test_tvos_audio_decodes_dpl2_to_surround(self):
+        prepare = self.text("scripts/prepare-tvos-dependencies.sh")
+        runtime_patch = self.text(
+            "patches/ModernGekko/0002-sunpad-tvos-surround.patch"
+        )
+        audio_patch = self.text(
+            "patches/ModernGekko-dolphin/0002-sunpad-tvos-surround.patch"
+        )
+        self.assertIn("0002-sunpad-tvos-surround.patch", prepare)
+        self.assertIn("apply_patchset", prepare)
+        self.assertIn(".moderngekko-patchset", prepare)
+        self.assertIn(".dolphin-patchset", prepare)
+        self.assertIn("Config::MAIN_DPL2_DECODER, true", runtime_patch)
+        self.assertIn("MixSurround", audio_patch)
+        self.assertIn("kAudioChannelLayoutTag_MPEG_5_1_A", audio_patch)
+        self.assertIn("kAudioChannelLayoutTag_MPEG_5_0_A", audio_patch)
+        self.assertIn("m_channels >= 5", audio_patch)
 
     def test_device_workflow_preserves_scope(self):
         stage = self.text("scripts/stage-tvos-game-data.sh")
         backup = self.text("scripts/backup-tvos-state.sh")
         diagnostics = self.text("scripts/collect-tvos-diagnostics.sh")
-        self.assertIn("Library/Caches/SunPad/GameData/GMSE01", stage)
+        self.assertIn('"$STAGING/SunPad/GameData/GMSE01"', stage)
+        self.assertIn('--destination "Library/Caches"', stage)
         self.assertIn("13934c863d649b1ddca1ca4d7748f49", stage)
         self.assertIn("appDataContainer", stage)
         self.assertIn("--remove-existing-content false", stage)

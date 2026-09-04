@@ -11,13 +11,16 @@ setup screen and Mac-side staging, backup, and diagnostic scripts.
 ## First-preview scope
 
 - GMSE01 USA, disc 0, revision 0 only.
-- Original 30 FPS, Original 4:3, 1x rendering, performance mode off.
-- One Extended Gamepad. The Siri Remote is setup UI only.
+- Original 30 FPS, game-specific 16:9, 1x rendering, performance mode off.
+- One Extended Gamepad, which may connect before or after launch. The Siri Remote is setup UI only.
+- Direct GameController snapshots, binary controller haptics, and six-channel
+  DPL2 output with a stereo fallback.
 - User-provided extracted game data staged from a Mac.
 - Offline play first; no touch controls or in-app file picker.
 
 The tvOS app refuses to start until the extracted tree, disc header,
-`sys/main.dol` hash, bundled tvOS module, and Extended Gamepad are present.
+`sys/main.dol` hash, and bundled tvOS module are present. It starts without a
+controller and adopts the first Extended Gamepad when one connects.
 
 ## Storage contract
 
@@ -40,16 +43,31 @@ xcodebuild -project SunPad.xcodeproj -scheme SunPadTV -configuration Release \
 
 Package and audit the unsigned preview only after the app build succeeds.
 
-## Physical acceptance still required
+For the simulator gate, build and provision the same core and GMSE01 module for
+the tvOS Simulator before building the `SunPadTV` target:
 
-- Signed app installs and opens on a physical Apple TV.
+```sh
+./scripts/tvos-build-core-simulator.sh
+xcodebuild -project SunPad.xcodeproj -scheme SunPadTV -configuration Release \
+  -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation) (at 1080p)' \
+  -derivedDataPath /tmp/SunPadTVSimulatorDerivedData build
+```
+
+The simulator follows the same controller-optional startup behavior as a device
+build. Gameplay still requires an Extended Gamepad.
+## Exact-artifact physical acceptance still required
+
 - Missing data produces the setup screen rather than a crash.
 - Valid staged GMSE01 data reaches the title screen and gameplay.
-- Video, audio, FLUDD trigger pressure, Start, sticks, and C-stick are correct.
+- Video, audible channel placement, FLUDD trigger pressure, Start, sticks,
+  C-stick, and game-triggered haptics are correct.
 - Controller disconnect/reconnect and sleep/wake release stale input.
 - A save survives ordinary exit and relaunch.
 - Backup and restore are rehearsed before meaningful progress is risked.
 - A 30-minute gameplay run records frame pacing, audio, thermals, and failures.
 
-Until those gates pass on the exact public artifact, describe the result as an
+Contributor hardware runs have demonstrated installation, boot, rendering,
+six-channel audio initialization, controller/haptics setup, a live input-bridge
+call, and clean-install staging. They do not replace the gates above on the
+exact public artifact. Until those gates pass, describe the result as an
 experimental tvOS build, not supported Apple TV functionality.

@@ -175,11 +175,12 @@ Last updated: 2026-09-04
 
 ## tvOS (experimental)
 
-1. **No physical Apple TV acceptance yet** — the arm64 tvOS core, GMSE01
-   module, native app, and unsigned IPA are build-and-audit evidence only.
-   Boot, first frame, gameplay, audio, controller feel, focus, lifecycle,
-   performance, thermals, and save/readback behavior remain unverified on
-   Apple TV hardware.
+1. **Exact Preview 12 hardware acceptance is still incomplete** — contributor
+   Apple TV 4K evidence covers installation, boot, rendering, six-channel DPL2
+   initialization, controller/haptics setup, a live input-bridge call, and
+   clean-install staging. Normal gameplay input, audible speaker mapping,
+   game-triggered haptics, focus, lifecycle, performance, thermals, and
+   save/readback still require acceptance on the exact public artifact.
 2. **Mac-side game-data staging is required** — tvOS has no supported
    iPhone/iPad Files-import path. `scripts/stage-tvos-game-data.sh` validates an
    already extracted GMSE01 tree and copies it into the installed app container.
@@ -188,10 +189,10 @@ Last updated: 2026-09-04
    in the reference hardware workflow. tvOS may remove this data. Back up
    configuration and `GC` saves with `scripts/backup-tvos-state.sh`; the helper
    deliberately does not copy retail game data.
-4. **One Extended Gamepad only** — the first preview has no touch, Siri Remote
+4. **One Extended Gamepad only** — the preview has no touch, Siri Remote
    gameplay, multi-controller, button-remapping, or settings UI. Connect one
-   Extended Gamepad before launch. Physical controller compatibility remains
-   an acceptance item.
+   Extended Gamepad before or after launch. Gameplay feel, disconnect/reconnect,
+   and game-triggered haptics remain acceptance items.
 5. **Developer signing remains necessary** — the public IPA is unsigned and
    contains a nested executable module. Re-sign the complete app, including the
    module, with a tvOS-capable identity and install it through a supported
