@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 Current phase: **SunPad now boots Super Mario Sunshine on a physical iPad as
 well as the iPhone and iPad simulators** as an ahead-of-time statically
@@ -35,6 +35,7 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
 | 2 | Native Apple Silicon macOS `.app` proof | **App bundle built, signed, and launched; gameplay acceptance remains** |
 | 3 | Mobile-runtime hardening | **In progress — Simulator/device core built; JIT disabled; interpreter + software-vertex fallbacks** |
 | 4 | iPhone + iPad apps | **In progress — physical iPad boot/render/input proven; fixed audio awaits device re-acceptance** |
+| 5 | Experimental Apple TV app | **arm64 tvOS core/module/app and deterministic unsigned IPA pass — physical hardware acceptance open** |
 
 ## What works right now
 
@@ -107,6 +108,25 @@ the generic vertex loader replaces Dolphin's ARM64 code-generating loader.
     the phase transition, first-frame dismissal, and stopped-indicator module
     failure alert. The installed iOS 26.5 Simulator image does not expose
     VoiceOver, so a spoken-navigation pass remains open on physical hardware.
+
+### tvOS (experimental)
+
+1. A maintainer-owned `SunPadTV` target builds the same statically linked
+   ModernGekko/Dolphin-derived core for arm64 tvOS 17 and bundles a tvOS-built
+   GMSE01 module. It does not use a runtime PowerPC JIT.
+2. The native shell renders into a `CAMetalLayer`, accepts one Apple Extended
+   Gamepad, maps it through the existing thread-safe GameCube input path, and
+   fails closed when the controller, bundled module, or exact staged GMSE01
+   tree is missing.
+3. Because tvOS has no iPhone/iPad Files picker, a Mac helper validates and
+   stages the user's already extracted GMSE01 data into the app's Caches
+   container. A separate helper backs up only configuration and GameCube saves.
+4. The unsigned tester IPA excludes game data, saves, logs, signing material,
+   and provisioning profiles. App/module arm64 identity, TVOS build metadata,
+   controller declarations, and asset structure are covered by audits.
+5. Physical Apple TV boot, first frame, sustained gameplay, audio, controller
+   feel, focus behavior, lifecycle recovery, performance, and save readback are
+   all still open. This is an experimental artifact, not a compatibility claim.
 
 ### Desktop (previously proven)
 
@@ -208,9 +228,9 @@ behavior has shipped or passed:
    coverage.
 5. Treat the exposed 60 FPS switch as a restart-required test mode known to be
    unsuitable for normal play; keep 30 FPS as the supported default.
-6. Keep Wii U GameCube Adapter, HD textures, Vision Pro, Apple TV, and
-   Eclipse/general mods in feasibility backlog, separate from the stability
-   update.
+6. Keep Wii U GameCube Adapter, HD textures, Vision Pro, and Eclipse/general
+   mods in feasibility backlog. Keep Apple TV separate as an experimental
+   tester path until its physical acceptance matrix passes.
 
 ## Next core/runtime tasks
 

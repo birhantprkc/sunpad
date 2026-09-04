@@ -1,6 +1,6 @@
 # Known Issues
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 ## iOS / iPadOS
 
@@ -167,11 +167,35 @@ Last updated: 2026-09-03
     CPU/GPU desynchronization. After reproducing a problem, use **••• → Report
     a Problem…** and include the scene, approximate play duration, and whether
     either unstable option was enabled.
-21. **Platform/accessory/mod requests are backlog research** — the Wii U
-    GameCube Adapter is disabled by the current iOS no-op backend. HD textures,
-    Vision Pro, Apple TV, and Eclipse/general mods have no accepted mobile
-    product path yet. Keep them separate from the current stability work and
-    do not imply support from generic Dolphin or GameController capabilities.
+21. **Platform/accessory/mod requests stay separated** — the Wii U GameCube
+    Adapter is disabled by the current iOS no-op backend. HD textures, Vision
+    Pro, and Eclipse/general mods have no accepted product path yet. Apple TV
+    now has a separate experimental tester build, but generic Dolphin or
+    GameController capability is not SunPad hardware acceptance.
+
+## tvOS (experimental)
+
+1. **No physical Apple TV acceptance yet** — the arm64 tvOS core, GMSE01
+   module, native app, and unsigned IPA are build-and-audit evidence only.
+   Boot, first frame, gameplay, audio, controller feel, focus, lifecycle,
+   performance, thermals, and save/readback behavior remain unverified on
+   Apple TV hardware.
+2. **Mac-side game-data staging is required** — tvOS has no supported
+   iPhone/iPad Files-import path. `scripts/stage-tvos-game-data.sh` validates an
+   already extracted GMSE01 tree and copies it into the installed app container.
+3. **Storage is purgeable** — game data, configuration, logs, and saves live
+   under the tvOS Caches container because Application Support uploads failed
+   in the reference hardware workflow. tvOS may remove this data. Back up
+   configuration and `GC` saves with `scripts/backup-tvos-state.sh`; the helper
+   deliberately does not copy retail game data.
+4. **One Extended Gamepad only** — the first preview has no touch, Siri Remote
+   gameplay, multi-controller, button-remapping, or settings UI. Connect one
+   Extended Gamepad before launch. Physical controller compatibility remains
+   an acceptance item.
+5. **Developer signing remains necessary** — the public IPA is unsigned and
+   contains a nested executable module. Re-sign the complete app, including the
+   module, with a tvOS-capable identity and install it through a supported
+   developer workflow.
 
 ## Desktop Stage 1 gaps
 
