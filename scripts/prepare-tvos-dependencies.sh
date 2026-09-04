@@ -70,5 +70,6 @@ apply_patchset "$MG" "$DEPENDENCY_ROOT/.moderngekko-patchset" \
   "$ROOT/patches/ModernGekko/0002-sunpad-tvos-surround.patch"
 apply_patchset "$MG/vendor/dolphin" "$DEPENDENCY_ROOT/.dolphin-patchset" \
   "$ROOT/patches/ModernGekko-dolphin/0001-sunpad-ios-runtime.patch" \
-  "$ROOT/patches/ModernGekko-dolphin/0002-sunpad-tvos-surround.patch"
+  "$ROOT/patches/ModernGekko-dolphin/0002-sunpad-tvos-surround.patch" \
+  "$ROOT/patches/ModernGekko-dolphin/0002-sunpad-tvos-controller.patch"
 echo "Isolated tvOS dependencies are pinned and patched: $DEPENDENCY_ROOT"
