@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-MG="${SUNPAD_TVOS_MODERNGEKKO_ROOT:-$ROOT/build/tvos-deps/ModernGekko}"
+DEPENDENCY_ROOT="${SUNPAD_TVOS_DEPENDENCY_ROOT:-$ROOT/build/tvos-deps}"
+MG="${SUNPAD_TVOS_MODERNGEKKO_ROOT:-$DEPENDENCY_ROOT/ModernGekko}"
 SDK="${SUNPAD_TVOS_SDK:-appletvos}"
 [[ "$SDK" = appletvos || "$SDK" = appletvsimulator ]] || {
   echo "unsupported tvOS SDK: $SDK" >&2

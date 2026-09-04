@@ -48,12 +48,19 @@ apply_patchset() {
   shift 2
   local patches=("$@")
   local fingerprint current
-  fingerprint="$(shasum -a 256 "${patches[@]}" | shasum -a 256 | awk '{print $1}')"
-  current="$(git -C "$checkout" diff --ignore-submodules=all | shasum -a 256 | awk '{print $1}')"
+  fingerprint="$(cat "${patches[@]}" | shasum -a 256 | awk '{print $1}')"
+  current="$(
+    git -C "$checkout" diff --binary --ignore-submodules=all
+    while IFS= read -r file; do
+      printf 'untracked %s\n' "$file"
+      shasum -a 256 "$checkout/$file" | awk '{print $1}'
+    done < <(git -C "$checkout" ls-files --others --exclude-standard)
+  )"
+  current="$(printf '%s' "$current" | shasum -a 256 | awk '{print $1}')"
   if [[ -f "$marker" && "$(<"$marker")" = "$fingerprint $current" ]]; then
     return
   fi
-  if ! git -C "$checkout" diff --ignore-submodules=all --quiet; then
+  if [[ -n "$(git -C "$checkout" status --porcelain --ignore-submodules=all)" ]]; then
     echo "unexpected local changes in $checkout; remove $DEPENDENCY_ROOT and retry" >&2
     exit 1
   fi
@@ -62,7 +69,14 @@ apply_patchset() {
     git -C "$checkout" apply --check "$patch"
     git -C "$checkout" apply "$patch"
   done
-  current="$(git -C "$checkout" diff --ignore-submodules=all | shasum -a 256 | awk '{print $1}')"
+  current="$(
+    git -C "$checkout" diff --binary --ignore-submodules=all
+    while IFS= read -r file; do
+      printf 'untracked %s\n' "$file"
+      shasum -a 256 "$checkout/$file" | awk '{print $1}'
+    done < <(git -C "$checkout" ls-files --others --exclude-standard)
+  )"
+  current="$(printf '%s' "$current" | shasum -a 256 | awk '{print $1}')"
   printf '%s %s\n' "$fingerprint" "$current" >"$marker"
 }
 apply_patchset "$MG" "$DEPENDENCY_ROOT/.moderngekko-patchset" \

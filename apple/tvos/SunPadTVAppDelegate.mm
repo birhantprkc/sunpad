@@ -3,7 +3,6 @@
 #import <GameController/GameController.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
-#import <TargetConditionals.h>
 #import <UIKit/UIKit.h>
 
 #import "SunPadControllerMapping.h"

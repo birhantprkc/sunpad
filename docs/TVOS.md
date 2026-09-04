@@ -11,13 +11,14 @@ setup screen and Mac-side staging, backup, and diagnostic scripts.
 ## First-preview scope
 
 - GMSE01 USA, disc 0, revision 0 only.
-- Original 30 FPS, Original 4:3, 1x rendering, performance mode off.
-- One Extended Gamepad. The Siri Remote is setup UI only.
+- Original 30 FPS, game-specific 16:9, 1x rendering, performance mode off.
+- One Extended Gamepad, which may connect before or after launch. The Siri Remote is setup UI only.
 - User-provided extracted game data staged from a Mac.
 - Offline play first; no touch controls or in-app file picker.
 
 The tvOS app refuses to start until the extracted tree, disc header,
-`sys/main.dol` hash, bundled tvOS module, and Extended Gamepad are present.
+`sys/main.dol` hash, and bundled tvOS module are present. It starts without a
+controller and adopts the first Extended Gamepad when one connects.
 
 ## Storage contract
 
@@ -50,8 +51,8 @@ xcodebuild -project SunPad.xcodeproj -scheme SunPadTV -configuration Release \
   -derivedDataPath /tmp/SunPadTVSimulatorDerivedData build
 ```
 
-The simulator bypasses only the physical Extended Gamepad requirement. Device
-builds still fail closed until an Extended Gamepad is connected.
+The simulator follows the same controller-optional startup behavior as a device
+build. Gameplay still requires an Extended Gamepad.
 ## Physical acceptance still required
 
 - Signed app installs and opens on a physical Apple TV.

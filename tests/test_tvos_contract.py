@@ -128,8 +128,9 @@ class TvOSContractTests(unittest.TestCase):
         simulator = self.text("scripts/tvos-build-core-simulator.sh")
         self.assertIn("SUNPAD_TVOS_SDK=appletvsimulator", simulator)
         self.assertIn('SDK="${SUNPAD_TVOS_SDK:-appletvos}"', build)
+        self.assertIn('SUNPAD_TVOS_DEPENDENCY_ROOT', build + provision)
         self.assertIn("TVOSSIMULATOR", provision)
-        self.assertIn("#if !TARGET_OS_SIMULATOR", self.text("apple/tvos/SunPadTVAppDelegate.mm"))
+        self.assertNotIn("startWirelessControllerDiscovery", self.text("apple/tvos/SunPadTVAppDelegate.mm"))
 
     def test_tvos_audio_decodes_dpl2_to_surround(self):
         prepare = self.text("scripts/prepare-tvos-dependencies.sh")

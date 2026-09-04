@@ -52,7 +52,7 @@ done
 
 for forbidden in '*.iso' '*.gcm' '*.rvz' '*.wia' '*.wbfs' '*.gcz' '*.gci' \
   '*.raw' '*.sav' '*.log' '*.mobileprovision' '*.p12' '*.pem' '*.key' \
-  'GameData' 'SaveData'; do
+  'GameData' 'BundledGameData' 'SaveData'; do
   [[ -z "$(find "$APP" -name "$forbidden" -print -quit)" ]] || fail "forbidden private data: $forbidden"
 done
 for file in "$EXECUTABLE" "$MODULE"; do

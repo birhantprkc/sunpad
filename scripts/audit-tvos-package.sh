@@ -20,7 +20,7 @@ done
 if grep -Eq '(^|/)\.\.(/|$)|^/|(^|/)__MACOSX(/|$)' <<<"$ENTRIES"; then
   fail "archive contains an unsafe path"
 fi
-if grep -Eiq '\.(iso|gcm|rvz|wia|wbfs|gcz|gci|sav|raw|log|mobileprovision|p12|p8|pem|key|cer)$|(^|/)_CodeSignature(/|$)' <<<"$ENTRIES"; then
+if grep -Eiq '\.(iso|gcm|rvz|wia|wbfs|gcz|gci|sav|raw|log|mobileprovision|p12|p8|pem|key|cer)$|(^|/)(GameData|BundledGameData|SaveData|_CodeSignature)(/|$)' <<<"$ENTRIES"; then
   fail "archive contains private data or signing material"
 fi
 

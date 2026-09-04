@@ -73,7 +73,7 @@ index 1e16650239..8b6e2213f8 100644
    return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
  }
  
-@@ -64,11 +114,19 @@ ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
+@@ -64,10 +114,18 @@ ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
  
  void Rumble(const int pad_num, const ControlState strength)
  {
@@ -92,4 +92,3 @@ index 1e16650239..8b6e2213f8 100644
 +#endif
    static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(0.0);
  }
- 
