@@ -1,8 +1,8 @@
 # SunPad
 
 <p align="center">
-  <strong>Super Mario Sunshine on iPhone, iPad, and Apple Silicon Mac through static recompilation and Metal.</strong><br>
-  Touch controls on mobile, keyboard/controller input on Mac, and local user-supplied game-data setup.
+  <strong>Super Mario Sunshine on iPhone, iPad, experimental Apple TV, and Apple Silicon Mac through static recompilation and Metal.</strong><br>
+  Touch controls on mobile, controller input on Apple TV, keyboard/controller input on Mac, and local user-supplied game-data setup.
 </p>
 
 <p align="center">
@@ -11,6 +11,7 @@
 
 <p align="center">
   <img alt="iOS and iPadOS artifact target 16+" src="https://img.shields.io/badge/iOS%20%2F%20iPadOS%20artifact%20target-16%2B-0A84FF?logo=apple">
+  <img alt="Experimental tvOS artifact target 17+" src="https://img.shields.io/badge/tvOS%20experimental-17%2B-0A84FF?logo=apple">
   <img alt="Configured macOS 14+ target" src="https://img.shields.io/badge/configured%20macOS%20target-14%2B-0A84FF?logo=apple">
   <img alt="Metal renderer" src="https://img.shields.io/badge/renderer-Metal-5E5CE6">
   <img alt="Ahead-of-time static recompilation" src="https://img.shields.io/badge/PowerPC-static%20recompilation-FF9F0A">
@@ -41,14 +42,14 @@ game module.
 
 | Area | Current result |
 |---|---|
-| Native app | Universal arm64 iPhone/iPad target plus a local Apple Silicon `SunPad.app` packager |
+| Native app | Universal arm64 iPhone/iPad target, experimental arm64 Apple TV target, plus a local Apple Silicon `SunPad.app` packager |
 | Rendering | Dolphin Metal backend reaches the title sequence and playable Delfino Plaza gameplay |
 | Game setup | Exact GMSE01 USA Rev 0 validation, staged private import, atomic activation, and real removal |
 | Touch | Move stick, C-stick, grouped D-pad editing, A/B/X/Y/Z, L, analog R, Start, and a persistent settings menu |
-| Controllers | Touch and Apple GameController on mobile; keyboard or connected controller on macOS; stable player slots, stale-controller reconciliation, disconnect release, and narrow A/B/X/Y/Z remapping are covered by deterministic tests; Bluetooth, wired, and natural-sleep acceptance remains open |
+| Controllers | Touch and Apple GameController on mobile; one Extended Gamepad on experimental tvOS; keyboard or connected controller on macOS; tvOS physical-controller acceptance remains open |
 | Settings | Stable three-dot menu with Display, Controls, Unstable Experiments, Game Data & Saves, and Report a Problem; live 1×–4× render scale, aspect ratio, controller mapping, and touch-layout settings |
 | Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 10 IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Distribution | Audited unsigned Preview 10 iPhone/iPad IPA and experimental Preview 11 Apple TV IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -80,6 +81,20 @@ It must be re-signed with your Apple identity, including its nested
 `gGMSE01_recomp.dylib`, before installation. It contains no game image or
 save. Follow [`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md) for the short install
 path, checksum verification, current compatibility boundary, and first launch.
+
+## Download the experimental Apple TV preview
+
+The unsigned
+[`SunPad-0.1.0-preview.11-tvos-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.11/SunPad-0.1.0-preview.11-tvos-unsigned.ipa)
+is an experimental tvOS 17+ bring-up build. It contains the native arm64 tvOS
+app and GMSE01 module, but no game image, extracted game data, save, signing
+identity, or provisioning profile. It requires an Extended Gamepad and Mac-side
+staging of a locally extracted supported game after installation. The build and
+package pass the repository's tvOS architecture, privacy, and content audits;
+boot, rendering, audio, controller feel, lifecycle, performance, and save
+behavior still need physical Apple TV acceptance. Follow
+[`docs/INSTALL_TVOS.md`](docs/INSTALL_TVOS.md) and treat this as a tester build,
+not compatibility confirmation.
 
 ## Build from source
 
@@ -126,6 +141,16 @@ xcodebuild -project SunPad.xcodeproj -scheme SunPad -configuration Debug \
   -allowProvisioningUpdates build
 ```
 
+Build the experimental Apple TV core, module, and unsigned app:
+
+```sh
+./scripts/tvos-build-core-device.sh
+xcodebuild -project SunPad.xcodeproj -scheme SunPadTV -configuration Release \
+  -destination 'generic/platform=tvOS' \
+  -derivedDataPath /tmp/SunPadTVDerivedData \
+  CODE_SIGNING_ALLOWED=NO build
+```
+
 Build the local Apple Silicon macOS app after producing the desktop GMSE01
 module from [`docs/BUILDING.md`](docs/BUILDING.md):
 
@@ -168,6 +193,17 @@ WASD to move, arrow keys for the camera, J/K/U/I/O for A/B/X/Y/Z, Q/E for L/R,
 and Return for Start. Connect a controller and choose it in the launcher to
 replace the keyboard profile. Mac game data, configuration, and saves stay in
 `~/Library/Application Support/SunPad`.
+
+## First launch on Apple TV
+
+Apple TV support is intentionally narrow and experimental. Re-sign and install
+the tvOS IPA, then use `scripts/stage-tvos-game-data.sh` from the Mac that holds
+your locally extracted GMSE01 data. SunPad stores the staged game tree,
+configuration, logs, and saves below its tvOS Caches container because tvOS
+does not provide the iPhone/iPad Files-import path. tvOS may purge this storage;
+use `scripts/backup-tvos-state.sh` before app replacement or extended testing.
+Connect one Extended Gamepad before launch. See [`docs/TVOS.md`](docs/TVOS.md)
+for the exact workflow and the still-open hardware checklist.
 
 ## Touch controls
 
@@ -306,12 +342,14 @@ ARM64 handoff includes the fix from
 
 ### Can I download an IPA?
 
-Yes. Download the unsigned **SunPad 0.1.0 Preview 10** IPA from
+Yes. Download the unsigned **SunPad 0.1.0 Preview 10** iPhone/iPad IPA from
 [GitHub Releases](https://github.com/chrissotraidis/sunpad/releases), then
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game
 assets, save, settings, certificate, or provisioning profile. See
-[`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md).
+[`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md). The separate Preview 11 Apple TV
+IPA is experimental and uses the staging workflow in
+[`docs/INSTALL_TVOS.md`](docs/INSTALL_TVOS.md).
 
 ### Does the IPA work in LiveContainer?
 
@@ -354,9 +392,10 @@ visual problems, attach the screenshot and `Latest-SunPad-Diagnostic.log` from
 SunPad's Files-visible `Diagnostics` folder. A separate default-off
 **60 FPS Patch (Unstable, Restart Required)** option is diagnostic-only and is
 known from hands-on physical-iPad testing to be unsuitable for normal play.
-Original 30 FPS remains the supported default. Wii U GameCube Adapter, HD
-textures, Vision Pro, Apple TV, and Eclipse/general mod support remain backlog
-research rather than promised features.
+Original 30 FPS remains the supported default. Apple TV now has an experimental
+tester build, but physical boot/gameplay/controller/audio/save acceptance is
+still open. Wii U GameCube Adapter, HD textures, Vision Pro, and Eclipse/general
+mod support remain backlog research rather than promised features.
 
 ## Project map
 
@@ -366,14 +405,19 @@ research rather than promised features.
 | [`scripts/prepare-game.sh`](scripts/prepare-game.sh) | Validate the supported local image and generate ignored game/module inputs |
 | [`scripts/ios-build-core.sh`](scripts/ios-build-core.sh) | Build and provision the Simulator core/module |
 | [`scripts/ios-build-core-device.sh`](scripts/ios-build-core-device.sh) | Build and provision the physical-device core/module |
+| [`scripts/tvos-build-core-device.sh`](scripts/tvos-build-core-device.sh) | Build and provision the experimental tvOS core/module |
+| [`scripts/stage-tvos-game-data.sh`](scripts/stage-tvos-game-data.sh) | Validate and stage local GMSE01 data into an installed Apple TV app |
+| [`scripts/package-tvos.sh`](scripts/package-tvos.sh) | Create the audited unsigned experimental tvOS IPA |
 | [`scripts/package-ios.sh`](scripts/package-ios.sh) | Create the audited unsigned developer-preview IPA |
 | [`scripts/audit-ios-package.sh`](scripts/audit-ios-package.sh) | Reject game data, saves, signing material, and malformed IPA contents |
 | [`scripts/package-macos-app.sh`](scripts/package-macos-app.sh) | Build the local Apple Silicon `SunPad.app` bundle |
 | [`apple/ios/`](apple/ios/) | UIKit app shell, Files import, touch UI, and Apple adapter |
+| [`apple/tvos/`](apple/tvos/) | Focus-safe tvOS shell, Extended Gamepad input, metadata, privacy manifest, and artwork |
 | [`apple/macos/`](apple/macos/) | macOS bundle metadata, launcher wrapper, and keyboard defaults |
 | [`patches/ModernGekko/`](patches/ModernGekko/) | Complete ModernGekko Apple-runtime snapshot |
 | [`patches/ModernGekko-dolphin/`](patches/ModernGekko-dolphin/) | Complete vendored Dolphin iOS/runtime snapshot |
 | [`docs/BUILDING.md`](docs/BUILDING.md) | Exact desktop, Simulator, and device build commands |
+| [`docs/TVOS.md`](docs/TVOS.md) | Experimental Apple TV scope, staging workflow, and acceptance gates |
 | [`docs/ANDROID-FEASIBILITY.md`](docs/ANDROID-FEASIBILITY.md) | Source-backed Android architecture, build plan, effort, and acceptance gates |
 | [`docs/TESTING.md`](docs/TESTING.md) | Dated evidence and remaining acceptance gates |
 | [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) | Current limitations and workarounds |
@@ -386,7 +430,9 @@ The recompilation path follows the public ExpansionPak ecosystem: DolRecomp,
 ModernGekko, ModernGekko-Template, RecompCore, and their contributors. Dolphin
 provides the compatibility-runtime foundation and Metal backend. The
 [doldecomp/sms](https://github.com/doldecomp/sms) project is used as a research
-reference. See [`docs/RESEARCH.md`](docs/RESEARCH.md) and
+reference. The initial Apple TV feasibility work and tvOS compile-guard changes
+were informed by [@joeblack2k's pull request #32](https://github.com/chrissotraidis/sunpad/pull/32).
+See [`docs/RESEARCH.md`](docs/RESEARCH.md) and
 [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md) for pins and attribution.
 
 ## Legal

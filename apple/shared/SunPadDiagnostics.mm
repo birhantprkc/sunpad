@@ -1,5 +1,7 @@
 #import "SunPadDiagnostics.h"
 
+#import <TargetConditionals.h>
+
 #import <sys/sysctl.h>
 
 static NSUInteger const SunPadMaximumUniqueRuntimeEvents = 64;
@@ -25,8 +27,13 @@ static NSObject *SunPadDiagnosticsLock(void) {
 }
 
 static NSString *SunPadDiagnosticsDirectory(void) {
+    NSSearchPathDirectory directory = NSApplicationSupportDirectory;
+#if TARGET_OS_TV
+    // tvOS filesystem-backed state must be treated as purgeable.
+    directory = NSCachesDirectory;
+#endif
     NSArray<NSString *> *paths = NSSearchPathForDirectoriesInDomains(
-        NSApplicationSupportDirectory, NSUserDomainMask, YES);
+        directory, NSUserDomainMask, YES);
     NSString *root = [paths.firstObject stringByAppendingPathComponent:@"SunPad"];
     return [root stringByAppendingPathComponent:@"Logs"];
 }

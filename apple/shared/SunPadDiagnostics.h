@@ -5,8 +5,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /* Starts the persistent runtime log and rotates it when it grows beyond 1 MB.
- * The log lives in Library/Application Support/SunPad/Logs/runtime.log so it
- * survives app relaunches and can be retrieved with devicectl. */
+ * The log lives under SunPad/Logs in Application Support on iOS and Caches on
+ * tvOS, where filesystem-backed state must be treated as purgeable. */
 FOUNDATION_EXPORT void SunPadDiagnosticsStart(void);
 
 /* Writes one timestamped line to both the unified device log and SunPad's
