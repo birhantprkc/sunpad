@@ -89,6 +89,21 @@ class TvOSContractTests(unittest.TestCase):
             teardown.index("strongSelf->_hapticEngine"),
         )
 
+    def test_tvos_boot_never_waits_for_controller(self):
+        host = self.text("apple/tvos/SunPadTVAppDelegate.mm")
+        view_did_appear = host.split("- (void)viewDidAppear:", 1)[1].split(
+            "- (void)startControllerInput", 1
+        )[0]
+        self.assertLess(
+            view_did_appear.index("[self startControllerInput]"),
+            view_did_appear.index("[self attemptStart]"),
+        )
+        self.assertNotIn("SunPadTVHasExtendedController", host)
+        self.assertNotIn("startWirelessControllerDiscovery", host)
+        self.assertNotIn("Connect an Extended Gamepad", host)
+        self.assertNotIn("Siri Remote operates", host)
+        self.assertNotIn("SUNPAD_TVOS_ALLOW_CONTROLLERLESS_DIAGNOSTICS", host)
+
     def test_build_produces_core_and_tvos_module(self):
         build = self.text("scripts/tvos-build-core-device.sh")
         toolchain = self.text("scripts/tvos-device-toolchain.cmake")

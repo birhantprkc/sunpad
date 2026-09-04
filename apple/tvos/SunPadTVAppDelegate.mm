@@ -177,14 +177,6 @@ SunPadTVPadSnapshot SunPadTVSnapshotFromInputState(
     return snapshot;
 }
 
-BOOL SunPadTVHasExtendedController(void) {
-    for (GCController *controller in GCController.controllers) {
-        if (controller.extendedGamepad != nil)
-            return YES;
-    }
-    return NO;
-}
-
 }  // namespace
 
 @interface SunPadTVMetalView : UIView
@@ -532,23 +524,6 @@ extern "C" bool SunPadTVSetRumble(bool enabled) {
                  buttons:@[]];
         return;
     }
-#if !TARGET_OS_SIMULATOR
-    [self reconcileController];
-    if (!SunPadTVHasExtendedController()) {
-        UIButton *find = [self buttonWithTitle:@"Find Controller" action:^{
-            [GCController startWirelessControllerDiscoveryWithCompletionHandler:^{
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [weakSelf reconcileController];
-                    [weakSelf attemptStart];
-                });
-            }];
-        }];
-        [self showStatus:
-            @"Connect an Extended Gamepad in Apple TV Settings. The Siri Remote operates this setup screen but is not a gameplay controller."
-                 buttons:@[find]];
-        return;
-    }
-#endif
     [NSFileManager.defaultManager createDirectoryAtPath:SunPadTVSupportRoot()
         withIntermediateDirectories:YES attributes:nil error:nil];
     SunPadSettings *settings = SunPadSettings.sharedSettings;
