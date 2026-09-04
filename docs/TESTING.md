@@ -423,7 +423,7 @@ a PID, or a clean log alone does not satisfy hands-on input or gameplay rows.
 
 ## Experimental tvOS build evidence (2026-09-04)
 
-The first maintainer-owned tvOS candidate was reconstructed from pinned
+The Preview 11 maintainer-owned tvOS build was reconstructed from pinned
 ModernGekko `0514d9f`, vendored Dolphin/RecompCore `13e4920`, and corrected
 DolRecomp `fa0cf61` in an isolated ignored dependency tree. The full runtime
 compiled as arm64 TVOS with a 17.0 minimum. The corrected GMSE01 generator
@@ -435,15 +435,17 @@ passed, and the complete tvOS module linked successfully.
 arm64-only TVOS binaries with a 17.0 minimum; the app contains compiled layered
 tvOS artwork, the privacy manifest, and Dolphin `Sys`, and contains no game
 data, saves, logs, signing material, provisioning profile, credential pattern,
-or personal build path. Candidate hashes were app
-`1b551a7b7c0a75b10bcc7c876be64bd52232c28d7d7d80e22453012ea306e3c1`
+or personal build path. The release was rebuilt from merged `main` commit
+`ed36328d96ebd012477d0c6937c73c2ebdf40e53`. Final hashes were app
+`c77af4a4e0c9fa2916d5719a087d88eb903a364a00e8b4811d6af71a820a1e39`
 and module
 `5d1aed355123d827a9cfbac76ca85cba1888884de28f3e16325d3817382e6d69`.
-Two independently packaged unsigned IPAs were byte-identical at 24,983,395
+Two independently packaged unsigned IPAs were byte-identical at 24,983,402
 bytes and SHA-256
-`235aa790884998336304c4829ddbf07a9ae1ecdcf31911d36f964d2a6a25b791`;
-both passed ZIP and tvOS package audits. This is branch candidate evidence and
-must be rebuilt from merged `main` before publication. No Apple TV appeared in
+`58e7b66fd97f37035fea11acfd5395c9ce005e2edebefa8ceb0a670e864a3002`;
+both passed ZIP and tvOS package audits. The published GitHub asset reports the
+same size and digest. A fresh anonymous download was byte-identical to the local
+release artifact and passed the package audit again. No Apple TV appeared in
 `devicectl list devices`, so none of these results is a physical boot,
 controller, gameplay, audio, save, lifecycle, or performance pass.
 
