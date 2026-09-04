@@ -36,7 +36,7 @@ done
 [[ "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "$BUNDLE_IDENTIFIER" ]] || fail "unexpected bundle identifier"
 [[ "$(plutil -extract CFBundleExecutable raw "$APP/Info.plist")" = SunPadTV ]] || fail "unexpected executable name"
 [[ "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = 0.1.0 ]] || fail "unexpected version"
-[[ "$(plutil -extract CFBundleVersion raw "$APP/Info.plist")" = 11 ]] || fail "unexpected build number"
+[[ "$(plutil -extract CFBundleVersion raw "$APP/Info.plist")" = 12 ]] || fail "unexpected build number"
 [[ "$(plutil -extract MinimumOSVersion raw "$APP/Info.plist")" = 17.0 ]] || fail "unexpected plist minimum"
 [[ "$(plutil -extract GCSupportsControllerUserInteraction raw "$APP/Info.plist")" = true ]] || fail "controller support metadata is missing"
 [[ "$(plutil -extract GCSupportedGameControllers.0.ProfileName raw "$APP/Info.plist")" = ExtendedGamepad ]] || fail "ExtendedGamepad metadata is missing"

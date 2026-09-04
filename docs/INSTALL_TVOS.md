@@ -1,10 +1,10 @@
 # Install the experimental SunPad Apple TV build
 
-SunPad 0.1.0 Preview 11 includes an unsigned ARM64 tvOS IPA for hardware
+SunPad 0.1.0 Preview 12 includes an unsigned ARM64 tvOS IPA for hardware
 bring-up. It is experimental Apple TV functionality, not accepted support.
 
-1. Download `SunPad-0.1.0-preview.11-tvos-unsigned.ipa` and verify the SHA-256
-   from the Preview 11 release.
+1. Download `SunPad-0.1.0-preview.12-tvos-unsigned.ipa` and verify the SHA-256
+   from the Preview 12 release.
 2. Re-sign the app and its nested `gGMSE01_recomp.dylib` with your own Apple
    development identity and bundle identifier, then install it on a paired
    Apple TV using Xcode or a compatible tvOS signing workflow.
@@ -19,8 +19,8 @@ bring-up. It is experimental Apple TV functionality, not accepted support.
      "Living Room"
    ```
 
-5. Connect an Extended Gamepad and launch SunPad. The Siri Remote operates the
-   setup screen but is not a gameplay controller.
+5. Connect an Extended Gamepad before or after launching SunPad. The Siri
+   Remote operates the setup screen but is not a gameplay controller.
 
 The IPA contains the SunPad runtime and GMSE01 ahead-of-time recompiled module,
 but no disc image, extracted assets, saves, signing identity, provisioning

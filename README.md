@@ -46,10 +46,10 @@ game module.
 | Rendering | Dolphin Metal backend reaches the title sequence and playable Delfino Plaza gameplay |
 | Game setup | Exact GMSE01 USA Rev 0 validation, staged private import, atomic activation, and real removal |
 | Touch | Move stick, C-stick, grouped D-pad editing, A/B/X/Y/Z, L, analog R, Start, and a persistent settings menu |
-| Controllers | Touch and Apple GameController on mobile; one Extended Gamepad on experimental tvOS; keyboard or connected controller on macOS; tvOS physical-controller acceptance remains open |
+| Controllers | Touch and Apple GameController on mobile; one hot-pluggable Extended Gamepad with direct input and haptics on experimental tvOS; keyboard or connected controller on macOS; exact-artifact tvOS gameplay acceptance remains open |
 | Settings | Stable three-dot menu with Display, Controls, Unstable Experiments, Game Data & Saves, and Report a Problem; live 1×–4× render scale, aspect ratio, controller mapping, and touch-layout settings |
-| Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; fresh physical-device audio acceptance remains |
-| Distribution | Audited unsigned Preview 10 iPhone/iPad IPA and experimental Preview 11 Apple TV IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
+| Audio | Guest-timebase defect fixed; continuous desktop and Simulator audio verified; tvOS six-channel DPL2 initialization observed on hardware, while acoustic channel mapping and fresh gameplay acceptance remain open |
+| Distribution | Audited unsigned Preview 10 iPhone/iPad IPA and experimental Preview 12 Apple TV IPA for re-signing; no game image, saves, signing material, TestFlight, or App Store release |
 
 The mobile development build has been signed, installed, and played on a
 12.9-inch iPad Pro (6th generation). Physical-device boot, Metal rendering,
@@ -85,14 +85,17 @@ path, checksum verification, current compatibility boundary, and first launch.
 ## Download the experimental Apple TV preview
 
 The unsigned
-[`SunPad-0.1.0-preview.11-tvos-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.11/SunPad-0.1.0-preview.11-tvos-unsigned.ipa)
+[`SunPad-0.1.0-preview.12-tvos-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.12/SunPad-0.1.0-preview.12-tvos-unsigned.ipa)
 is an experimental tvOS 17+ bring-up build. It contains the native arm64 tvOS
 app and GMSE01 module, but no game image, extracted game data, save, signing
-identity, or provisioning profile. It requires an Extended Gamepad and Mac-side
-staging of a locally extracted supported game after installation. The build and
-package pass the repository's tvOS architecture, privacy, and content audits;
-boot, rendering, audio, controller feel, lifecycle, performance, and save
-behavior still need physical Apple TV acceptance. Follow
+identity, or provisioning profile. It supports game-specific 16:9, direct
+Extended Gamepad input and haptics, six-channel DPL2 output, controller hot
+connection, and corrected clean-install staging. It still requires Mac-side
+staging of a locally extracted supported game after installation. Contributor
+hardware evidence covers boot, rendering, audio initialization, controller
+setup, and staging, but exact-public-artifact gameplay, acoustic channel
+mapping, game-triggered haptics, lifecycle, performance, and save behavior
+remain acceptance gates. Follow
 [`docs/INSTALL_TVOS.md`](docs/INSTALL_TVOS.md) and treat this as a tester build,
 not compatibility confirmation.
 
@@ -347,7 +350,7 @@ Yes. Download the unsigned **SunPad 0.1.0 Preview 10** iPhone/iPad IPA from
 re-sign it with your own Apple identity. It includes the required GMSE01
 ahead-of-time recompiled executable module, but no disc image, extracted game
 assets, save, settings, certificate, or provisioning profile. See
-[`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md). The separate Preview 11 Apple TV
+[`docs/INSTALL_IPA.md`](docs/INSTALL_IPA.md). The separate Preview 12 Apple TV
 IPA is experimental and uses the staging workflow in
 [`docs/INSTALL_TVOS.md`](docs/INSTALL_TVOS.md).
 
@@ -393,8 +396,9 @@ SunPad's Files-visible `Diagnostics` folder. A separate default-off
 **60 FPS Patch (Unstable, Restart Required)** option is diagnostic-only and is
 known from hands-on physical-iPad testing to be unsuitable for normal play.
 Original 30 FPS remains the supported default. Apple TV now has an experimental
-tester build, but physical boot/gameplay/controller/audio/save acceptance is
-still open. Wii U GameCube Adapter, HD textures, Vision Pro, and Eclipse/general
+tester build with bounded contributor hardware evidence, but exact-artifact
+gameplay, controller feel, audio mapping, lifecycle, and save acceptance remain
+open. Wii U GameCube Adapter, HD textures, Vision Pro, and Eclipse/general
 mod support remain backlog research rather than promised features.
 
 ## Project map
@@ -430,8 +434,15 @@ The recompilation path follows the public ExpansionPak ecosystem: DolRecomp,
 ModernGekko, ModernGekko-Template, RecompCore, and their contributors. Dolphin
 provides the compatibility-runtime foundation and Metal backend. The
 [doldecomp/sms](https://github.com/doldecomp/sms) project is used as a research
-reference. The initial Apple TV feasibility work and tvOS compile-guard changes
-were informed by [@joeblack2k's pull request #32](https://github.com/chrissotraidis/sunpad/pull/32).
+reference. The Apple TV path began with feasibility work from
+[@joeblack2k's pull request #32](https://github.com/chrissotraidis/sunpad/pull/32).
+Preview 12 incorporates his widescreen, surround-audio, direct-controller,
+simulator-build, and clean-install staging contributions from
+[#35](https://github.com/chrissotraidis/sunpad/pull/35),
+[#36](https://github.com/chrissotraidis/sunpad/pull/36),
+[#37](https://github.com/chrissotraidis/sunpad/pull/37),
+[#39](https://github.com/chrissotraidis/sunpad/pull/39), and
+[#41](https://github.com/chrissotraidis/sunpad/pull/41).
 See [`docs/RESEARCH.md`](docs/RESEARCH.md) and
 [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md) for pins and attribution.
 

@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 APP="${1:-/tmp/SunPadTVDerivedData/Build/Products/Release-appletvos/SunPadTV.app}"
-OUTPUT="${2:-$ROOT/artifacts/SunPad-0.1.0-preview.11-tvos-unsigned.ipa}"
+OUTPUT="${2:-$ROOT/artifacts/SunPad-0.1.0-preview.12-tvos-unsigned.ipa}"
 [[ "$APP" = /* ]] || APP="$ROOT/$APP"
 [[ "$OUTPUT" = /* ]] || OUTPUT="$ROOT/$OUTPUT"
 [[ -d "$APP" ]] || { echo "app not found: $APP" >&2; exit 1; }
