@@ -2,7 +2,6 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-runtime_patch="$repo_root/patches/ModernGekko/0001-sunpad-apple-runtime.patch"
 runtime_source="$repo_root/ref/ModernGekko/src/runtime/dolphin_runtime.cpp"
 
 check_runtime_config() {
@@ -26,9 +25,6 @@ if expected not in text:
 PY
 }
 
-check_runtime_config "$runtime_patch"
-if [[ -f "$runtime_source" ]]; then
-  check_runtime_config "$runtime_source"
-fi
+check_runtime_config "$runtime_source"
 
 echo "iOS StaticRecomp configuration checks passed"

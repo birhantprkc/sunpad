@@ -7,19 +7,15 @@ trap 'rm -f "$test_binary"' EXIT
 
 runtime_header="$repo_root/ref/ModernGekko/include/moderngekko/runtime.hpp"
 runtime_source="$repo_root/ref/ModernGekko/src/runtime/dolphin_runtime.cpp"
-runtime_patch="$repo_root/patches/ModernGekko/0001-sunpad-apple-runtime.patch"
 
-if [[ -f "$runtime_header" ]]; then
+
+[[ -f "$runtime_header" ]] || { echo "Run bootstrap-dependencies.sh --sources-only first" >&2; exit 1; }
   clang++ \
     -std=c++23 \
     -I "$repo_root/ref/ModernGekko/include" \
     "$repo_root/tests/SunPadExperimental60FPSConfigTests.cpp" \
     -o "$test_binary"
   "$test_binary"
-else
-  grep -Fq -- 'bool enable_gmse01_60fps = false;' "$runtime_patch"
-  runtime_source="$runtime_patch"
-fi
 
 grep -Fq -- '-sunpadExperimental60FPS' \
   "$repo_root/apple/ios/SunPadCoreHost.mm"

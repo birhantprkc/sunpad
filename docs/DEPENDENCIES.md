@@ -1,6 +1,72 @@
 # Dependencies
 
-Last updated: 2026-08-31
+Updated September 14, 2026.
+
+## Maintained source graph
+
+SunPad now consumes maintained forks with upstream history and exact gitlinks.
+Normal bootstrap applies no patches. The lanes intentionally retain their own
+source snapshots so tvOS surround audio does not replace the iOS audio path.
+DolRecomp remains at the same reviewed upstream commit, available in the maintained
+fork. No Galaxy-specific compiler optimization, Wii control policy, THP experiment
+or audio implementation is imported by this migration.
+
+| Lane | Component | Gitlink / checkout | Selected commit |
+| --- | --- | --- | --- |
+| apple | [ModernGekko](https://github.com/chrissotraidis/ModernGekko) | `ref/ModernGekko` | `ceb527906396729d24df7248b01c7dc64e530700` |
+| apple | [RecompCore](https://github.com/chrissotraidis/RecompCore) | `ref/ModernGekko/vendor/dolphin` | `d46d2851a9fd349ddcdb2b17c3442324199f8640` |
+| apple | [DolRecomp](https://github.com/chrissotraidis/DolRecomp) | `ref/ModernGekko/vendor/dolphin/DolRecomp` | `fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa` |
+| tvos | [ModernGekko](https://github.com/chrissotraidis/ModernGekko) | `ref/ModernGekko-tvOS` | `3982ff05bef91d9e87acd7ebdb3f3b058c53e7f8` |
+| tvos | [RecompCore](https://github.com/chrissotraidis/RecompCore) | `ref/ModernGekko-tvOS/vendor/dolphin` | `6e8c569c4c579328907c5c12c0e63e07fd643df1` |
+| tvos | [DolRecomp](https://github.com/chrissotraidis/DolRecomp) | `ref/ModernGekko-tvOS/vendor/dolphin/DolRecomp` | `fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa` |
+| shared | [ModernGekko-Template](https://github.com/ExpansionPak/ModernGekko-Template) | `ref/ModernGekko-Template` | `1ee85bb5e09c38f493a09f5fa6e9dc8228b23e42` |
+
+Each ModernGekko checkout pins RecompCore at `vendor/dolphin`, which pins
+DolRecomp. The template is a third root submodule. Runtime/compiler origins are
+[ModernGekko](https://github.com/ExpansionPak/ModernGekko),
+[RecompCore](https://github.com/ExpansionPak/RecompCore), and
+[DolRecomp](https://github.com/ExpansionPak/DolRecomp). See [credits](../CREDITS.md).
+
+The [dependency lock](../config/dependencies.lock.json) records upstream bases and
+URLs. The [migration record](../config/dependency-migration.json) maps historical
+patch hashes to fork commits. Historical patches remain for older release and
+external donor references, not as a second maintained build path.
+
+## Preparing sources
+
+```sh
+./scripts/bootstrap-dependencies.sh --sources-only
+./scripts/check-repository.sh
+```
+
+Omit `--sources-only` to initialize the required Apple build externals. The verifier
+checks URLs, gitlinks, checkout commits and tracked/nonignored modifications,
+including nested dependencies. Ignored game/build inputs are outside this check.
+A `.git` metadata file, as used by submodules/worktrees, is supported.
+
+Older workspaces have modified standalone clones in `ref/`. Bootstrap refuses to
+overwrite them. Use a fresh checkout or worktree for migration, preserving private
+images, generated modules and saves in the old workspace. Do not run a recursive
+reset or clean. The tvOS default is now `ref/ModernGekko-tvOS`, not the older
+`build/tvos-deps/ModernGekko` patch-replay tree.
+
+## Updating dependencies and releases
+
+Commit runtime changes to the appropriate maintained fork, update its parent's
+nested gitlink, then update the app gitlink and lock. Use full SHAs, not branch tips.
+Run source checks and clean Apple runtime/host builds. Preserve original licenses,
+notices and author credit. See [contribution policy](../CONTRIBUTING.md).
+
+The packagers bundle credits, original dependency license texts and source
+references. Those references describe the packaging checkout, not proof that an
+externally supplied binary was built from it. Release promotion also needs frozen
+build inputs, generated-module identity, toolchain/flags and artifact hashes.
+Older public IPAs retain their own source and device-evidence limitations.
+
+## Historical baseline and research inventory
+
+The following records predate the fork migration. They describe the original
+upstream bases and research setup, not current pins or current host versions.
 
 ## Host toolchain (verified on this machine)
 
@@ -69,19 +135,3 @@ Not selected as primary runtime:
   the required static libraries in its own ignored build tree;
   they do not consume unexplained prebuilt libraries from `/tmp`.
 - The iOS toolchain file lives at `scripts/ios-simulator-toolchain.cmake`.
-
-## Update policy
-
-When any external checkout moves, update this file with the new SHA and the reason for the bump. Prefer official ExpansionPak / doldecomp upstreams over stale forks.
-
-## Repository hygiene note
-
-The `ref/` checkouts and the local disc image are Git-ignored wholesale: each
-checkout is a nested Git repository, so committing them would create broken
-gitlinks or vendor bloat. A fresh machine reproduces the required runtime tree
-and its reviewed SunPad changes with `./scripts/bootstrap-dependencies.sh`,
-then validates and prepares its own supported image with
-`./scripts/prepare-game.sh /path/to/GMSE01.iso`. The bootstrap covers the
-required ModernGekko (including vendored Dolphin and DolRecomp) and ModernGekko-Template
-pins; the other entries above are research references and are not required by
-that build workflow.

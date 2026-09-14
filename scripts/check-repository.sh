@@ -5,6 +5,11 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT"
 
 git diff --check
+python3 scripts/dependency-lock.py
+python3 tests/test_dependency_lock.py
+python3 tests/test_package_output.py
+./tests/test-extraction-progress.sh
+./tests/test-ipa-module.sh
 
 for script in scripts/*.sh tests/*.sh apple/macos/SunPad; do
   bash -n "$script"
@@ -43,7 +48,16 @@ test -x scripts/package-tvos.sh
 test -x scripts/audit-tvos-app.sh
 test -x scripts/audit-tvos-package.sh
 
-prohibited=$(git ls-files | grep -E '(^|/)(ref|DerivedData|Provisioned|build[^/]*)/|\.(iso|gcm|rvz|wia|wbfs|gcz|dylib|ipa|xcarchive|mobileprovision|p12|pem|key|gci|sav|raw)$' || true)
+# Only the three declared gitlinks may occupy the private reference area.
+python3 - <<'PYCHECK'
+import json,subprocess
+allowed={p['path']:p['revision'] for p in json.load(open('config/dependencies.lock.json'))['repositories'] if p['parent']=='.'}
+for row in subprocess.check_output(['git','ls-files','--stage'],text=True).splitlines():
+    meta,path=row.split('\t',1)
+    if path.startswith('ref/'):
+        assert path in allowed and meta.split()==['160000',allowed[path],'0'], 'Unexpected tracked reference material: '+path
+PYCHECK
+prohibited=$(git ls-files | grep -v -E '^ref/(ModernGekko|ModernGekko-tvOS|ModernGekko-Template)$' | grep -E '(^|/)(ref|DerivedData|Provisioned|build[^/]*)/|\.(iso|gcm|rvz|wia|wbfs|gcz|dylib|ipa|xcarchive|mobileprovision|p12|pem|key|gci|sav|raw)$' || true)
 if [[ -n "$prohibited" ]]; then
   echo "prohibited tracked material:" >&2
   echo "$prohibited" >&2

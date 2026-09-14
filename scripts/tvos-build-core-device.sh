@@ -2,8 +2,12 @@
 set -euo pipefail
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-DEPENDENCY_ROOT="${SUNPAD_TVOS_DEPENDENCY_ROOT:-$ROOT/build/tvos-deps}"
-MG="${SUNPAD_TVOS_MODERNGEKKO_ROOT:-$DEPENDENCY_ROOT/ModernGekko}"
+DEPENDENCY_ROOT="${SUNPAD_TVOS_DEPENDENCY_ROOT:-$ROOT/ref}"
+MG="${SUNPAD_TVOS_MODERNGEKKO_ROOT:-$DEPENDENCY_ROOT/ModernGekko-tvOS}"
+[[ "$MG" = "$ROOT/ref/ModernGekko-tvOS" ]] || {
+  echo "Custom tvOS source roots are not part of the pinned graph; use ref/ModernGekko-tvOS." >&2
+  exit 1
+}
 TPL="$ROOT/ref/ModernGekko-Template"
 TOOLCHAIN="$ROOT/scripts/tvos-device-toolchain.cmake"
 SDK="${SUNPAD_TVOS_SDK:-appletvos}"

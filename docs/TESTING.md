@@ -531,3 +531,13 @@ save/reload, controller, and extended-session acceptance remain open.
 | Desktop defaults | Pass | Metal, 1920×1080 internal resolution, Quartz keyboard profile |
 | Keyboard mapping | Configured | WASD movement, arrow camera, face/trigger/Start/D-pad keys; hands-on gameplay acceptance remains |
 | Connected controller | Configured | launcher can replace the keyboard profile; hands-on acceptance remains |
+
+
+## September 14, 2026: maintained-fork source migration
+
+The [upstream review](UPSTREAM-REVIEW.md) records the GalaxyPad comparison and
+SunPad-specific findings. Public-fork source setup, exact migration tree comparison,
+the full source suite, output/module rejection checks and separate clean iOS/tvOS
+Simulator runtime/app builds passed locally. Dependency sources remained clean.
+No generated game module, new release or physical gameplay was validated by this
+source-only pass. Existing Preview 10/12 device and release evidence is unchanged.

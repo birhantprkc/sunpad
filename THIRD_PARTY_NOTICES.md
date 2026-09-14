@@ -2,15 +2,14 @@
 
 SunPad's own integration source is licensed under the GNU General Public
 License, version 3 or later. The project builds against separately cloned,
-pinned upstream repositories; their source and license files remain in those
+pinned maintained forks of upstream repositories; their source and license files remain in those
 checkouts and are not vendored into this repository.
 
-| Component | Pin | License / notice |
-|---|---|---|
-| ModernGekko | `0514d9f03f8602809f66fc92fdca87d30e752997` | GPL-3.0-or-later |
-| ModernGekko vendored Dolphin/RecompCore | `13e492094902644b0d113c586300d358640f9e19` | Dolphin aggregate is GPLv3-compatible; per-file SPDX terms apply |
-| DolRecomp | `fa0cf619e8d7eb8cba7eaf55267a12caaebb46aa` | GPL-3.0-or-later |
-| ModernGekko-Template | `1ee85bb5e09c38f493a09f5fa6e9dc8228b23e42` | Build template; its dependencies retain their upstream licenses |
+The exact Apple/tvOS commits, original upstream bases and repository URLs are
+recorded in [the dependency lock](config/dependencies.lock.json). ModernGekko and
+DolRecomp retain their GPL notices. RecompCore retains Dolphin's per-file SPDX
+terms and third-party licenses. The template retains its original notices.
+[CREDITS.md](CREDITS.md) identifies the projects and contributor roles.
 
 See [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) for URLs, purposes, and the
 complete dependency inventory. A distributed binary that incorporates the
@@ -20,8 +19,10 @@ applicable license notices as required by those licenses.
 Super Mario Sunshine, Nintendo, and GameCube names, game imagery, and
 screenshots are owned by their respective rights holders. They are not
 licensed under the GPL and are used here only to identify compatibility and
-document runtime behavior. No retail image, extracted asset, generated
-game-derived module, or save is included.
+document runtime behavior. No retail image, extracted asset or save is included. The source repository
+excludes generated game modules. Published preview IPAs include the required
+GMSE01 AOT executable module. That distinction does not license Nintendo material
+under SunPad's GPL license.
 
 The SunPad icon is a project-specific AI-generated image. Its provenance is
 recorded beside the asset in

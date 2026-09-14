@@ -70,7 +70,7 @@ class TvOSContractTests(unittest.TestCase):
     def test_tvos_controller_bridge_is_native_and_direct(self):
         core_host = self.text("apple/ios/SunPadCoreHost.mm")
         patch = self.text(
-            "patches/ModernGekko-dolphin/0002-sunpad-tvos-controller.patch"
+            "ref/ModernGekko-tvOS/vendor/dolphin/Source/Core/Core/HW/GCPad.cpp"
         )
         prepare = self.text("scripts/prepare-tvos-dependencies.sh")
         self.assertIn("#if !TARGET_OS_TV", core_host)
@@ -79,7 +79,7 @@ class TvOSContractTests(unittest.TestCase):
         self.assertIn("status.substickX = input.c_stick_x", patch)
         self.assertIn("status.triggerRight = input.trigger_r", patch)
         self.assertIn("status.isConnected = input.connected != 0", patch)
-        self.assertIn("0002-sunpad-tvos-controller.patch", prepare)
+        self.assertIn("bootstrap-dependencies.sh", prepare)
 
     def test_tvos_rumble_teardown_is_owner_safe(self):
         host = self.text("apple/tvos/SunPadTVAppDelegate.mm")
@@ -135,15 +135,12 @@ class TvOSContractTests(unittest.TestCase):
     def test_tvos_audio_decodes_dpl2_to_surround(self):
         prepare = self.text("scripts/prepare-tvos-dependencies.sh")
         runtime_patch = self.text(
-            "patches/ModernGekko/0002-sunpad-tvos-surround.patch"
+            "ref/ModernGekko-tvOS/src/runtime/dolphin_runtime.cpp"
         )
         audio_patch = self.text(
-            "patches/ModernGekko-dolphin/0002-sunpad-tvos-surround.patch"
+            "ref/ModernGekko-tvOS/vendor/dolphin/Source/Core/AudioCommon/CoreAudioSoundStream.cpp"
         )
-        self.assertIn("0002-sunpad-tvos-surround.patch", prepare)
-        self.assertIn("apply_patchset", prepare)
-        self.assertIn(".moderngekko-patchset", prepare)
-        self.assertIn(".dolphin-patchset", prepare)
+        self.assertIn("bootstrap-dependencies.sh", prepare)
         self.assertIn("Config::MAIN_DPL2_DECODER, true", runtime_patch)
         self.assertIn("MixSurround", audio_patch)
         self.assertIn("kAudioChannelLayoutTag_MPEG_5_1_A", audio_patch)

@@ -4,7 +4,10 @@ set -euo pipefail
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 host="$repo_root/apple/ios/SunPadCoreHost.mm"
 overlay="$repo_root/apple/ios/SunPadGameOverlay.mm"
-runtime_patch="$repo_root/patches/ModernGekko/0001-sunpad-apple-runtime.patch"
+runtime_patch="$(mktemp)"
+trap 'rm -f "$runtime_patch"' EXIT
+cat "$repo_root/ref/ModernGekko/include/moderngekko/runtime.hpp" \
+    "$repo_root/ref/ModernGekko/src/runtime/dolphin_runtime.cpp" > "$runtime_patch"
 
 grep -Fq 'BOOL suppressHeatwave = mode != SunPadAspectRatioOriginal;' "$host"
 grep -Fq 'config.enable_gmse01_widescreen = savedAspect != SunPadAspectRatioOriginal;' "$host"

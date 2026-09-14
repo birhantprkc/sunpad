@@ -74,6 +74,7 @@ chmod +x "$OUTPUT/Contents/MacOS/SunPad"
 SOURCE_ICON="$ROOT/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 cp "$SOURCE_ICON" "$OUTPUT/Contents/Resources/AppIcon.png"
 
+"$ROOT/scripts/package-notices.sh" "$OUTPUT/Contents/Resources/SourceNotices"
 codesign --force --deep --sign - "$OUTPUT"
 codesign --verify --deep --strict "$OUTPUT"
 echo "$OUTPUT"

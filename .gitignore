@@ -91,10 +91,7 @@ artifacts/device-save-backups/
 *.swp
 *~
 
-# Local dependency checkouts (nested Git repos) and user-supplied disc images.
-# Each checkout is a nested Git repository, so committing would create broken
-# gitlinks or vendor bloat. The tree is reproducible from the pinned revisions
-# in docs/DEPENDENCIES.md.
+# Runtime gitlinks are explicitly tracked; all other reference material stays private.
 ref/
 __pycache__/
 

@@ -7,8 +7,10 @@ OUTPUT="${2:-$ROOT/artifacts/SunPad-0.1.0-preview.12-tvos-unsigned.ipa}"
 [[ "$APP" = /* ]] || APP="$ROOT/$APP"
 [[ "$OUTPUT" = /* ]] || OUTPUT="$ROOT/$OUTPUT"
 [[ -d "$APP" ]] || { echo "app not found: $APP" >&2; exit 1; }
+python3 "$ROOT/scripts/package-output.py" preflight "$OUTPUT" "$APP"
 
 PACKAGE_ROOT="$(mktemp -d /tmp/sunpad-tvos-package.XXXXXX)"
+trap 'rm -rf "$PACKAGE_ROOT"' EXIT
 STAGED_APP="$PACKAGE_ROOT/Payload/SunPadTV.app"
 mkdir -p "$(dirname "$STAGED_APP")" "$(dirname "$OUTPUT")"
 ditto "$APP" "$STAGED_APP"
@@ -20,6 +22,8 @@ cp "$ROOT/LICENSE" "$STAGED_APP/LICENSE"
 cp "$ROOT/THIRD_PARTY_NOTICES.md" "$STAGED_APP/THIRD_PARTY_NOTICES.md"
 cp "$ROOT/docs/INSTALL_TVOS.md" "$STAGED_APP/INSTALL_TVOS.md"
 
+"$ROOT/scripts/package-notices.sh" "$STAGED_APP/SourceNotices"
+
 find "$PACKAGE_ROOT" -exec touch -h -t 200001010000 {} +
 TEMPORARY_IPA="$PACKAGE_ROOT/SunPadTV.ipa"
 (
@@ -27,7 +31,7 @@ TEMPORARY_IPA="$PACKAGE_ROOT/SunPadTV.ipa"
   find Payload \( -type f -o -type l \) -print | LC_ALL=C sort | \
     zip -X -q -y "$TEMPORARY_IPA" -@
 )
-mv -f "$TEMPORARY_IPA" "$OUTPUT"
-"$ROOT/scripts/audit-tvos-package.sh" "$OUTPUT"
+"$ROOT/scripts/audit-tvos-package.sh" "$TEMPORARY_IPA"
+python3 "$ROOT/scripts/package-output.py" publish "$OUTPUT" "$TEMPORARY_IPA"
 echo "tvOS IPA: $OUTPUT"
 shasum -a 256 "$OUTPUT"
