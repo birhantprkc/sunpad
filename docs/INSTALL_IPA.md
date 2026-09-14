@@ -1,20 +1,16 @@
 # Install the developer-preview IPA
 
-SunPad 0.1.0 Preview 10 is an unsigned arm64 IPA for iPhone and iPad. It must
+SunPad 0.1.0 Preview 13 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
-Preview 10 corrects restoration of the targeted heat-distortion bypass. A
-Preview 8 log showed that selecting 16:9 and later returning to Original 4:3
-left the affected StaticRecomp chunk in interpreter fallback. The original
-GMSE01 instruction is now restored exactly. Preview 9's game-specific
-widescreen correction remains in place, and aspect changes require closing and
-reopening SunPad. Original 4:3 remains the stable default.
-**••• → Unstable Experiments → Use Supported 30 FPS Mode** restores the
-supported full CPU clock and original 30 FPS mode for the next launch.
+Preview 13 rebuilds the app and GMSE01 module from the maintained, pinned
+forks and includes complete source notices. Existing Sunshine fixes and the
+supported Original 30 FPS mode remain in place. See the
+[release record](PREVIEW-13.md) for build provenance and testing limits.
 
 1. Download
-   [`SunPad-0.1.0-preview.10-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.10/SunPad-0.1.0-preview.10-unsigned.ipa)
-   from the [Preview 10 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.10).
+   [`SunPad-0.1.0-preview.13-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.13/SunPad-0.1.0-preview.13-unsigned.ipa)
+   from the [Preview 13 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.13).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

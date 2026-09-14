@@ -34,8 +34,8 @@ Apple and tvOS versions.
 
 | Platform | Download / setup |
 | --- | --- |
-| iPhone / iPad | [Preview 10 IPA](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.10/SunPad-0.1.0-preview.10-unsigned.ipa) · [Installation guide](docs/INSTALL_IPA.md) |
-| Apple TV — experimental | [Preview 12 IPA](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.12/SunPad-0.1.0-preview.12-tvos-unsigned.ipa) · [Installation and staging](docs/INSTALL_TVOS.md) |
+| iPhone / iPad | [Preview 13 IPA](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.13/SunPad-0.1.0-preview.13-unsigned.ipa) · [Installation guide](docs/INSTALL_IPA.md) |
+| Apple TV — experimental | [Preview 13 IPA](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.13/SunPad-0.1.0-preview.13-tvos-unsigned.ipa) · [Installation and staging](docs/INSTALL_TVOS.md) |
 | Apple silicon Mac | [Build and run locally](docs/MACOS.md) |
 
 The IPAs require signing **both the app and its nested module** with your own
@@ -45,7 +45,8 @@ previews, not App Store or TestFlight releases.
 
 Apple TV requires Mac-side game-data staging and an Extended Gamepad. Its storage
 is purgeable, so [back up your saves](docs/TVOS.md) before replacing the app.
-Recent source-maintenance changes have not replaced these published IPAs.
+Preview 13 rebuilds both platforms from the maintained forks; see the
+[release record](docs/PREVIEW-13.md) for provenance and testing limits.
 
 ## Current status
 

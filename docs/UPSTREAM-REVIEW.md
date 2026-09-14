@@ -58,13 +58,13 @@ CI requires source checks plus separate iOS/tvOS Simulator runtime and app build
 The tvOS host-link fixture intentionally has no game-loader export and cannot pass
 the release audit. These builds never install an app or access saves.
 
-The published Preview 10 iOS and Preview 12 tvOS downloads are unchanged. Before a
-new release, freeze and retain all compiled inputs, generated-module provenance,
-SDK/toolchain/flags, source and artifact hashes, and validate the exact in-place
-update on hardware. Fork migration and packaging notices cannot retroactively
-prove historical binary provenance. Full-game performance, acoustic correctness,
-oldest-device acceptance and tvOS save durability remain separate gates. tvOS
-state remains purgeable cache data requiring backup.
+[Preview 13](PREVIEW-13.md) replaces the older iOS/tvOS downloads with fresh
+builds from the pinned forks. Exact source, toolchain, input and artifact hashes
+are recorded with that release. This does not retroactively prove the older
+binaries' provenance. Recipient-signed in-place updates, full-game performance,
+acoustic correctness, oldest-device acceptance and tvOS save durability remain
+separate physical validation gates. tvOS state remains purgeable cache data
+requiring backup.
 
 ## Completed local verification
 
