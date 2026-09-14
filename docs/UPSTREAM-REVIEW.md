@@ -65,3 +65,21 @@ update on hardware. Fork migration and packaging notices cannot retroactively
 prove historical binary provenance. Full-game performance, acoustic correctness,
 oldest-device acceptance and tvOS save durability remain separate gates. tvOS
 state remains purgeable cache data requiring backup.
+
+## Completed local verification
+
+At app source `518f706`, the full source suite passed. Both clean Simulator
+runtime and host builds passed with Xcode 26.6 (17F113), Apple Clang 21.0.0.
+Dependency sources remained clean after each build. This includes the tvOS Xcode
+resource/header-path migration to its pinned fork. No application was installed.
+
+The Apple/tvOS ModernGekko source trees and Apple/tvOS RecompCore source trees
+exactly matched their reconstructed patch trees before graph-only commits.
+Both production packagers rejected existing outputs and paths inside input apps,
+preserving the input and pre-existing output sentinels. The real iOS IPA audit
+rejected a compiled unrelated ARM64 library under the game-module filename.
+Notices generation succeeded for all 57 initialized dependency checkouts.
+
+The unchanged extractor also passed the delayed-main-callback ASan/UBSan harness.
+This bounded synthetic result is deliberately recorded as non-reproduction of
+GalaxyPad's failure, not proof of every import path.
