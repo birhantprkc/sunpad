@@ -1,43 +1,17 @@
-# Patch Snapshots
+# Historical SunPad source snapshots
 
-SunPad carries two complete, reviewable snapshots of all required changes to
-its ignored upstream trees:
+These patches reconstruct the earlier Preview 10/12 dependency sources and remain
+available for downstream projects referencing the original donor snapshots.
+Normal SunPad bootstrap no longer applies them. Runtime changes now belong in
+maintained forks selected by pinned submodules.
 
-| Patch | Applies to | Contents |
-|---|---|---|
-| `ModernGekko/0001-sunpad-apple-runtime.patch` | Pinned ModernGekko root | Apple frontend/runtime integration, macOS Metal defaults, iOS platform and build wiring, bounded warning/error forwarding, graphics diagnostic snapshots, and the SunPad-owned files required by the Apple workflows |
-| `ModernGekko-dolphin/0001-sunpad-ios-runtime.patch` | Pinned `ModernGekko/vendor/dolphin` | Complete Dolphin-derived Apple/runtime delta, including Metal/platform guards and stubs, iOS no-JIT/software-loader behavior, audio integration, embedder warning/error forwarding, Metal command-buffer error reporting, StaticRecomp timebase/TL/TU fixes, and the macOS ARM64 fallback contract |
+See the [current source graph](../docs/DEPENDENCIES.md),
+[migration record](../config/dependency-migration.json), and
+[engineering review](../docs/UPSTREAM-REVIEW.md). The migration record maps each
+snapshot hash to a source commit with upstream history intact. Apple and tvOS
+retain separate source pins to preserve their different audio implementations.
 
-These replace the earlier partial patch series. Required CoreAudio,
-mixer, platform-stub, frontend, and build changes are no longer
-described as unrepresented local edits.
-
-Do not apply these snapshots by hand to an arbitrary checkout. From the
-repository root, run:
-
-```sh
-./scripts/bootstrap-dependencies.sh
-```
-
-The bootstrap script checks out the exact revisions recorded in
-[DEPENDENCIES.md](../docs/DEPENDENCIES.md), verifies the vendored Dolphin
-revision, and applies each patch once. It accepts a patch that is already
-fully applied and stops if a checkout is on an unexpected commit or either
-snapshot does not apply cleanly.
-
-The ARM64 fallback-contract hunks are the focused fix from
-[ExpansionPak/RecompCore PR #6](https://github.com/ExpansionPak/RecompCore/pull/6),
-authored by Douglas Whittingham. They disable block linking while JitArm64 is a
-StaticRecomp fallback and return to the AOT module at covered addresses. To
-roll back only this behavior, revert those hunks in the snapshot and recreate
-the pinned dependency tree; the expected old diagnostic signature is roughly
-682 native dispatches before JitArm64 takes over.
-
-The snapshots contain generic Apple/runtime integration for SunPad's current
-`GMSE01` development path. A future game-specific address map, runtime
-code-patching range, HLE decision, MMIO route, or revision-specific workaround
-must remain clearly identified and reviewed rather than hidden in an unrelated
-platform edit.
-
-See [RESEARCH.md](../docs/RESEARCH.md) and
-[DEPENDENCIES.md](../docs/DEPENDENCIES.md) for architecture and provenance.
+For new work, run `scripts/bootstrap-dependencies.sh` in a fresh checkout. Do not
+apply these historical snapshots to arbitrary fork revisions. The ARM64 fallback
+repair credited to Douglas Whittingham in RecompCore PR #6 already exists in the
+pinned ancestry. An unspecified JIT allegation is not a reason to apply it again.

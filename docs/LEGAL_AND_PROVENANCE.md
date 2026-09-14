@@ -1,6 +1,6 @@
 # Legal and Provenance
 
-Last updated: 2026-08-10
+Last updated: 2026-09-14
 
 ## Project license
 
@@ -43,3 +43,11 @@ boundary; users still provide their own supported image.
 
 - “ReShine” is referenced only as community-reported evidence via ModernGekko credits; no public Sunshine ReShine tree was located at research time.
 - Matching decompilation progress is tracked separately from SunPad’s static-recompilation product path.
+
+## Source maintenance and release traceability
+
+See the [engineering review](UPSTREAM-REVIEW.md) and [credits](../CREDITS.md).
+Maintained fork pins and packaged source references improve traceability. They do
+not establish complete historical build provenance or resolve all questions about
+distribution of game-derived executable modules. New releases require their own
+frozen source/build records and matching notices.

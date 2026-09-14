@@ -19,10 +19,8 @@
   <img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A">
 </p>
 
-![SunPad running Super Mario Sunshine in Delfino Plaza on iPad](docs/readme/sunpad-delfino-plaza.jpg)
-
 SunPad packages a native Apple ARM64 app around a
-[DolRecomp](https://github.com/encounter/dolrecomp)-generated Super Mario
+[DolRecomp](https://github.com/ExpansionPak/DolRecomp)-generated Super Mario
 Sunshine module and the ModernGekko/Dolphin-derived compatibility runtime.
 Covered PowerPC game-code regions run as ahead-of-time recompiled host code.
 iPhone and iPad use interpreter fallback with no runtime PowerPC JIT; Apple
@@ -34,11 +32,37 @@ extracts it on-device, and provides a landscape touch controller alongside
 iOS GameController support. The local macOS app provides a Metal launcher,
 internal-resolution and fullscreen options, keyboard controls, and controller
 selection. This repository contains the Apple integration,
-patches, and reproducible tooling. It does **not** contain Super Mario
+pinned fork references, and build tooling. It does **not** contain Super Mario
 Sunshine, a GameCube image, extracted Nintendo assets, saves, or a generated
 game module.
 
+Built with [ModernGekko](https://github.com/ExpansionPak/ModernGekko), by Hyperway,
+ExpansionPak and contributors, and [DolRecomp](https://github.com/ExpansionPak/DolRecomp),
+on [RecompCore](https://github.com/ExpansionPak/RecompCore) and
+[Dolphin](https://github.com/dolphin-emu/dolphin). See [full credits](CREDITS.md),
+including contributor and AI/artwork provenance.
+
+**Maintained dependency forks:** [ModernGekko](https://github.com/chrissotraidis/ModernGekko),
+[RecompCore](https://github.com/chrissotraidis/RecompCore), and
+[DolRecomp](https://github.com/chrissotraidis/DolRecomp). SunPad selects exact commits
+through submodules. The iOS/macOS and tvOS lanes preserve their existing runtime
+behavior separately. See the [source graph](docs/DEPENDENCIES.md#maintained-source-graph).
+
+The goal is a reliable Apple experience for the original game. Sunshine-specific
+widescreen/heatwave fixes and optional experiments already exist. New levels and
+cheats are not a prerequisite or a promise. Original 30 FPS remains the supported
+default. The [September engineering review](docs/UPSTREAM-REVIEW.md) records the
+shared GalaxyPad findings, SunPad repairs and remaining validation limits.
+
+![SunPad running Super Mario Sunshine in Delfino Plaza on iPad](docs/readme/sunpad-delfino-plaza.jpg)
+
 ## Current status
+
+The source maintenance changes described here do not replace the published
+Preview 10 iOS or Preview 12 tvOS binaries. Their existing evidence and limitations
+remain attached to those artifacts. A new source build needs separate device and
+release validation.
+
 
 | Area | Current result |
 |---|---|
@@ -56,8 +80,8 @@ The mobile development build has been signed, installed, and played on a
 Files import, on-device extraction, touch input, gameplay, and in-place app
 updates have been exercised. A signed development build has also launched on
 an iPhone 14, where performance is currently below the iPad experience even at
-1×. For iPhone development testing, an **iPhone 15 Pro or newer is strongly
-recommended**. The local arm64 macOS app bundle has been built, signed ad hoc, and
+1×. No minimum iPhone model with acceptable performance has been established by
+matched testing. The local arm64 macOS app bundle has been built, signed ad hoc, and
 launched with its Metal and keyboard defaults. See
 [the testing ledger](docs/TESTING.md) for the dated evidence and remaining
 hands-on acceptance checks.
@@ -117,8 +141,10 @@ supported game revision:
 ./scripts/prepare-game.sh /path/to/GMSE01.iso
 ```
 
-`bootstrap-dependencies.sh` clones the pinned public toolchain revisions and
-applies the two complete SunPad patch snapshots. It never downloads game data.
+`bootstrap-dependencies.sh` prepares pinned public fork submodules and verifies
+their source state. It never applies patches or downloads game data. For checks
+without build externals, use `--sources-only`. Existing modified dependency
+checkouts must be preserved and migrated through a fresh checkout.
 `prepare-game.sh` verifies the exact supported SHA-256, builds the desktop
 tools, extracts the image locally, and generates the host module inputs used
 by the Apple builds. All outputs stay under ignored local paths. See
@@ -405,7 +431,7 @@ mod support remain backlog research rather than promised features.
 
 | Path | Purpose |
 |---|---|
-| [`scripts/bootstrap-dependencies.sh`](scripts/bootstrap-dependencies.sh) | Clone reviewed upstream revisions and apply the complete patch snapshots |
+| [`scripts/bootstrap-dependencies.sh`](scripts/bootstrap-dependencies.sh) | Prepare and verify pinned maintained forks |
 | [`scripts/prepare-game.sh`](scripts/prepare-game.sh) | Validate the supported local image and generate ignored game/module inputs |
 | [`scripts/ios-build-core.sh`](scripts/ios-build-core.sh) | Build and provision the Simulator core/module |
 | [`scripts/ios-build-core-device.sh`](scripts/ios-build-core-device.sh) | Build and provision the physical-device core/module |
@@ -418,15 +444,15 @@ mod support remain backlog research rather than promised features.
 | [`apple/ios/`](apple/ios/) | UIKit app shell, Files import, touch UI, and Apple adapter |
 | [`apple/tvos/`](apple/tvos/) | Focus-safe tvOS shell, Extended Gamepad input, metadata, privacy manifest, and artwork |
 | [`apple/macos/`](apple/macos/) | macOS bundle metadata, launcher wrapper, and keyboard defaults |
-| [`patches/ModernGekko/`](patches/ModernGekko/) | Complete ModernGekko Apple-runtime snapshot |
-| [`patches/ModernGekko-dolphin/`](patches/ModernGekko-dolphin/) | Complete vendored Dolphin iOS/runtime snapshot |
+| [`config/dependencies.lock.json`](config/dependencies.lock.json) | Exact Apple/tvOS runtime and compiler source graph |
+| [`patches/`](patches/) | Historical snapshots for older releases and downstream references, not applied by bootstrap |
 | [`docs/BUILDING.md`](docs/BUILDING.md) | Exact desktop, Simulator, and device build commands |
 | [`docs/TVOS.md`](docs/TVOS.md) | Experimental Apple TV scope, staging workflow, and acceptance gates |
 | [`docs/ANDROID-FEASIBILITY.md`](docs/ANDROID-FEASIBILITY.md) | Source-backed Android architecture, build plan, effort, and acceptance gates |
 | [`docs/TESTING.md`](docs/TESTING.md) | Dated evidence and remaining acceptance gates |
 | [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) | Current limitations and workarounds |
 | [`docs/LEGAL_AND_PROVENANCE.md`](docs/LEGAL_AND_PROVENANCE.md) | Asset, game-data, attribution, and license boundary |
-| `ref/` | Ignored local game data and pinned/generated source worktrees |
+| `ref/` | Three tracked source gitlinks; other local inputs and generated game data remain ignored |
 
 ## Research and credits
 

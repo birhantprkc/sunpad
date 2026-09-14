@@ -10,6 +10,7 @@ OUTPUT="${3:-$ROOT/artifacts/SunPad-0.1.0-preview.10-unsigned.ipa}"
 [[ "$MODULE" = /* ]] || MODULE="$ROOT/$MODULE"
 [[ "$OUTPUT" = /* ]] || OUTPUT="$ROOT/$OUTPUT"
 [[ -d "$APP" ]] || { echo "app not found: $APP" >&2; exit 1; }
+python3 "$ROOT/scripts/package-output.py" preflight "$OUTPUT" "$APP" "$MODULE"
 [[ -f "$MODULE" ]] || { echo "module not found: $MODULE" >&2; exit 1; }
 
 package_root="$(mktemp -d /tmp/sunpad-package.XXXXXX)"
@@ -34,6 +35,8 @@ cp "$ROOT/LICENSE" "$staged_app/LICENSE"
 cp "$ROOT/THIRD_PARTY_NOTICES.md" "$staged_app/THIRD_PARTY_NOTICES.md"
 cp "$ROOT/docs/INSTALL_IPA.md" "$staged_app/INSTALL_IPA.md"
 
+"$ROOT/scripts/package-notices.sh" "$staged_app/SourceNotices"
+
 find "$package_root" -exec touch -h -t 200001010000 {} +
 temporary_ipa="$package_root/SunPad.ipa"
 (
@@ -41,9 +44,8 @@ temporary_ipa="$package_root/SunPad.ipa"
   find Payload \( -type f -o -type l \) -print | LC_ALL=C sort |
     zip -X -q -y "$temporary_ipa" -@
 )
-mv -f "$temporary_ipa" "$OUTPUT"
-
-"$ROOT/scripts/audit-ios-package.sh" "$OUTPUT"
+"$ROOT/scripts/audit-ios-package.sh" "$temporary_ipa"
+python3 "$ROOT/scripts/package-output.py" publish "$OUTPUT" "$temporary_ipa"
 echo "IPA: $OUTPUT"
 shasum -a 256 "$OUTPUT"
 echo "This unsigned IPA must be re-signed before installation."

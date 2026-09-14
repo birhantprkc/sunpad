@@ -116,7 +116,7 @@
 		BB0000000000000000000204 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB0000000000000000000205 /* gGMSE01_recomp.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = gGMSE01_recomp.dylib; path = "Provisioned/$(PLATFORM_NAME)/gGMSE01_recomp.dylib"; sourceTree = "<group>"; };
 		BB0000000000000000000206 /* SunPadTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SunPadTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		BB0000000000000000000207 /* tvOS Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = build/tvos-deps/ModernGekko/vendor/dolphin/Data/Sys; sourceTree = SOURCE_ROOT; };
+		BB0000000000000000000207 /* tvOS Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ref/ModernGekko-tvOS/vendor/dolphin/Data/Sys; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -595,12 +595,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/apple/ios",
 					"$(SRCROOT)/apple/shared",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/Source/Core",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/GXRuntime/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/build-tvos-$(PLATFORM_NAME)-public",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/fmt/fmt/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/Externals/picojson",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/Source/Core",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/GXRuntime/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/build-tvos-$(PLATFORM_NAME)-public",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/fmt/fmt/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/Externals/picojson",
 				);
 				INFOPLIST_FILE = apple/tvos/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -650,12 +650,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/apple/ios",
 					"$(SRCROOT)/apple/shared",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/Source/Core",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/GXRuntime/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/build-tvos-$(PLATFORM_NAME)-public",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/fmt/fmt/include",
-					"$(SRCROOT)/build/tvos-deps/ModernGekko/vendor/dolphin/Externals/picojson",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/Source/Core",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/GXRuntime/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/build-tvos-$(PLATFORM_NAME)-public",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/fmt/fmt/include",
+					"$(SRCROOT)/ref/ModernGekko-tvOS/vendor/dolphin/Externals/picojson",
 				);
 				INFOPLIST_FILE = apple/tvos/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

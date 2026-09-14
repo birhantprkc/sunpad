@@ -1,3 +1,7 @@
+> Dependency maintenance changed on September 14, 2026. Use the
+> [pinned fork source graph](DEPENDENCIES.md) in a fresh checkout. Bootstrap no
+> longer applies historical patches and refuses modified old dependency trees.
+
 # Building
 
 Last updated: 2026-08-09
@@ -9,18 +13,17 @@ and a legally obtained Super Mario Sunshine USA ISO (`GMSE01`).
 
 ## Clean-clone preparation
 
-Recreate the complete ignored dependency tree at the reviewed revisions:
+Prepare the pinned fork dependency tree:
 
 ```sh
 ./scripts/bootstrap-dependencies.sh
 ```
 
-The bootstrap script clones ModernGekko recursively (including its Dolphin and
-DolRecomp submodules) plus ModernGekko-Template, verifies their exact commits, and applies
-the two complete patch snapshots listed in [the patch index](../patches/README.md).
-It is idempotent for an unchanged prepared tree and never downloads game data.
-If an existing ignored checkout is on another revision or a patch cannot be
-applied cleanly, it stops instead of modifying an unknown tree.
+The bootstrap script initializes ModernGekko's Apple and tvOS lanes, their
+RecompCore/DolRecomp submodules and ModernGekko-Template. It verifies exact commits,
+URLs, gitlinks and source cleanliness without applying patches. It never downloads
+game data. Modified old checkouts are preserved. Use a fresh checkout to migrate.
+See the [dependency guide](DEPENDENCIES.md).
 
 Validate and prepare the supported local image:
 
