@@ -13,7 +13,7 @@ MG="$ROOT/ref/ModernGekko"
 TPL="$ROOT/ref/ModernGekko-Template"
 TOOLCHAIN="$ROOT/scripts/ios-device-toolchain.cmake"
 BUILD="$MG/build-ios-iphoneos-public"
-MODULE_BUILD="/tmp/sunpad-module-ios-device"
+MODULE_BUILD="${SUNPAD_IOS_MODULE_BUILD:-/tmp/sunpad-module-ios-device}"
 
 "$ROOT/scripts/bootstrap-dependencies.sh"
 
@@ -81,6 +81,6 @@ cmake -S "$MG/vendor/dolphin/module-template" -B "$MODULE_BUILD" -G Ninja \
 ninja -C "$MODULE_BUILD" -j8
 
 echo "==> Provisioning app"
-"$ROOT/scripts/ios-provision-device.sh"
+SUNPAD_DEVICE_MODULE_PATH="$MODULE_BUILD/gGMSE01_recomp.dylib" "$ROOT/scripts/ios-provision-device.sh"
 
 echo "Core, module, and provisioning complete."
