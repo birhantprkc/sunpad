@@ -1,5 +1,9 @@
 # Install the developer-preview IPA
 
+> [!IMPORTANT]
+> **Downloads retired.** Prebuilt builds are no longer published, and release
+> links on this page no longer work. A build-it-yourself version is in progress.
+
 SunPad 0.1.0 Preview 13 is an unsigned arm64 IPA for iPhone and iPad. It must
 be re-signed with your own Apple identity before installation.
 
@@ -9,8 +13,8 @@ supported Original 30 FPS mode remain in place. See the
 [release record](PREVIEW-13.md) for build provenance and testing limits.
 
 1. Download
-   [`SunPad-0.1.0-preview.13-unsigned.ipa`](https://github.com/chrissotraidis/sunpad/releases/download/v0.1.0-preview.13/SunPad-0.1.0-preview.13-unsigned.ipa)
-   from the [Preview 13 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.13).
+   `SunPad-0.1.0-preview.13-unsigned.ipa` (retired)
+   from the Preview 13 release (retired).
 2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
 3. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.

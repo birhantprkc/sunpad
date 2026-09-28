@@ -9,7 +9,7 @@ gameplay feature or performance claim.
 
 ## Downloads and evidence
 
-Use the [Preview 13 release](https://github.com/chrissotraidis/sunpad/releases/tag/v0.1.0-preview.13):
+Use the Preview 13 release (retired):
 
 - `SunPad-0.1.0-preview.13-unsigned.ipa`: iPhone/iPad, arm64, iOS target 16.0.
 - `SunPad-0.1.0-preview.13-tvos-unsigned.ipa`: Apple TV, arm64, tvOS target 17.0.
