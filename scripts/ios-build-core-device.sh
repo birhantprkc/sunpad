@@ -22,6 +22,9 @@ CMAKE_COMMON=(
   -DCMAKE_SYSTEM_PROCESSOR=arm64
   -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0
   -DCMAKE_BUILD_TYPE=Release
+  # Use the bundled minizip-ng: pkg-config otherwise finds a Homebrew (macOS)
+  # copy, and app provisioning links the bundled archive explicitly.
+  -DUSE_SYSTEM_MINIZIP-NG=OFF
   -DUSE_SYSTEM_FMT=OFF
   -DENABLE_QT=OFF -DENABLE_TESTS=OFF
   -DUSE_DISCORD_PRESENCE=OFF -DUSE_MGBA=OFF
