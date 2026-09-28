@@ -26,14 +26,12 @@
         {
           "stage": "dependencies",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/bootstrap-dependencies.sh"
           ]
         },
         {
           "stage": "prepare",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/prepare-game.sh",
             "{disc}"
           ]
@@ -41,7 +39,6 @@
         {
           "stage": "translate",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/ios-build-core-device.sh"
           ]
         },
@@ -66,7 +63,6 @@
         {
           "stage": "package",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/package-ios.sh",
             "{work}/xcode/Build/Products/Release-iphoneos/SunPad.app",
             "/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib",
