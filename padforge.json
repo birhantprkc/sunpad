@@ -4,7 +4,7 @@
   "name": "SunPad",
   "game": "Super Mario Sunshine (GameCube, GMSE01 rev 0)",
   "kind": "disc-translation",
-  "status": "draft-untested",
+  "status": "experimental",
   "inputs": [
     {
       "type": "gamecube-disc",
