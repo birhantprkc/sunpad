@@ -12,6 +12,7 @@ derived="$(mktemp -d /tmp/sunpad-app.XXXXXX)"
 trap 'rm -rf "$derived"' EXIT
 
 SUNPAD_CORE_ONLY=1 "$ROOT/scripts/ios-build-core-device.sh"
+"$ROOT/scripts/ios-provision-device.sh"   # merge the fresh core into libSunPadCore.a
 xcodebuild -project "$ROOT/SunPad.xcodeproj" -scheme SunPad -configuration Release \
   -destination generic/platform=iOS -derivedDataPath "$derived" \
   CODE_SIGNING_ALLOWED=NO MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$build" build
