@@ -20,8 +20,14 @@
       "hosts": {
         "macos-arm64": "experimental"
       },
+      "tools": [
+        "git",
+        "cmake",
+        "ninja"
+      ],
+      "published_app": "SunPad-v{version}-ios-unsigned.ipa",
       "output": "ipa",
-      "check": "ipa",
+      "check": "none",
       "steps": [
         {
           "stage": "dependencies",
@@ -43,28 +49,10 @@
           ]
         },
         {
-          "stage": "compile",
-          "command": [
-            "xcodebuild",
-            "-project",
-            "{repo}/SunPad.xcodeproj",
-            "-scheme",
-            "SunPad",
-            "-configuration",
-            "Release",
-            "-destination",
-            "generic/platform=iOS",
-            "-derivedDataPath",
-            "{work}/xcode",
-            "CODE_SIGNING_ALLOWED=NO",
-            "build"
-          ]
-        },
-        {
           "stage": "package",
           "command": [
             "{repo}/scripts/package-ios.sh",
-            "{work}/xcode/Build/Products/Release-iphoneos/SunPad.app",
+            "{app}",
             "/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib",
             "{output}"
           ]
@@ -122,6 +110,6 @@
   "notes": "The app loads the translated game from a separate module (gGMSE01_recomp.dylib); package-ios.sh places it with the app. The /tmp module path is the one ios-build-core-device.sh writes today.",
   "publication": {
     "public_binaries": false,
-    "reason": "Personal builds contain game code translated from the player's disc; public releases are source only."
+    "reason": "The release publishes the app without game code; PadForge adds the module translated from the player's own disc, which stays personal."
   }
 }

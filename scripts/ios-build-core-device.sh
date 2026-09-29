@@ -49,6 +49,12 @@ cmake -S "$MG" -B "$BUILD" -G Ninja "${CMAKE_COMMON[@]}"
 echo "==> Building core libraries"
 ninja -C "$BUILD" libmoderngekko.a -j8
 
+# The published app needs only the core (no game code): scripts/build-ios-app.sh.
+if [[ "${SUNPAD_CORE_ONLY:-0}" = 1 ]]; then
+  echo "core libraries built; SUNPAD_CORE_ONLY=1 skips the game module"
+  exit 0
+fi
+
 echo "==> Building GMSE01 recompiled module for iOS device"
 ACTIVE_FILE="$TPL/build/modules-macos14/GMSE01/active-module.txt"
 if [[ -f "$ACTIVE_FILE" ]]; then

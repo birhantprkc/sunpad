@@ -30,9 +30,16 @@ Apple and tvOS versions.
 
 ![SunPad running Super Mario Sunshine in Delfino Plaza on iPad](docs/readme/sunpad-delfino-plaza.jpg)
 
-## Download the preview
+## Get SunPad
 
-Previous builds have been retired; a new version is in progress. Apple silicon Macs can [build and run locally](docs/MACOS.md).
+The app on the [releases page](https://github.com/chrissotraidis/sunpad/releases/latest) contains no
+game code. On an Apple silicon Mac with Xcode, download
+[PadForge](https://github.com/chrissotraidis/padforge/releases/latest), unzip it, double-click
+`PadForge.command`, choose SunPad and drag in your own GMSE01 disc image. PadForge translates the
+game from your disc, adds it to the published app and saves your SunPad IPA in the folder you
+choose; install it with AltStore Classic, SideStore or Sideloadly. The IPA it makes contains code
+translated from your disc: keep it for yourself. Apple silicon Macs can also
+[build and run locally](docs/MACOS.md).
 
 Apple TV requires Mac-side game-data staging and an Extended Gamepad. Its storage
 is purgeable, so [back up your saves](docs/TVOS.md) before replacing the app.

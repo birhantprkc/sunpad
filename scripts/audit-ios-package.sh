@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 IPA="${1:?usage: scripts/audit-ios-package.sh <SunPad.ipa>}"
 [[ "$IPA" = /* ]] || IPA="$ROOT/$IPA"
+# SUNPAD_APP_ONLY=1 audits the published app, which must carry no game module.
+APP_ONLY="${SUNPAD_APP_ONLY:-0}"
+expected_version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/version.json")"
+expected_build="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$ROOT/version.json")"
 
 fail() {
   echo "iOS package audit failed: $*" >&2
@@ -16,8 +20,13 @@ unzip -tq "$IPA" >/dev/null || fail "ZIP integrity check failed"
 entries="$(unzip -Z1 "$IPA")"
 grep -Fxq 'Payload/SunPad.app/SunPad' <<<"$entries" ||
   fail "app executable is missing"
-grep -Fxq 'Payload/SunPad.app/gGMSE01_recomp.dylib' <<<"$entries" ||
-  fail "GMSE01 module is missing"
+if [[ "$APP_ONLY" = 1 ]]; then
+  ! grep -Fxq 'Payload/SunPad.app/gGMSE01_recomp.dylib' <<<"$entries" ||
+    fail "the published app must not contain the GMSE01 module"
+else
+  grep -Fxq 'Payload/SunPad.app/gGMSE01_recomp.dylib' <<<"$entries" ||
+    fail "GMSE01 module is missing"
+fi
 grep -Fxq 'Payload/SunPad.app/LICENSE' <<<"$entries" ||
   fail "GPL license is missing"
 grep -Fxq 'Payload/SunPad.app/THIRD_PARTY_NOTICES.md' <<<"$entries" ||
@@ -39,18 +48,20 @@ module="$app/gGMSE01_recomp.dylib"
 [[ "$(find "$extract_root/Payload" -mindepth 1 -maxdepth 1 -type d -name '*.app' | wc -l | tr -d ' ')" = 1 ]] ||
   fail "IPA must contain exactly one app"
 [[ "$(lipo -archs "$executable")" = arm64 ]] || fail "app is not arm64-only"
-[[ "$(lipo -archs "$module")" = arm64 ]] || fail "module is not arm64-only"
-module_exports="$(nm -gjU "$module")"
-grep -Fxq _staticrecomp_get_module <<<"$module_exports" || fail "module loader entry point is missing"
+if [[ "$APP_ONLY" != 1 ]]; then
+  [[ "$(lipo -archs "$module")" = arm64 ]] || fail "module is not arm64-only"
+  module_exports="$(nm -gjU "$module")"
+  grep -Fxq _staticrecomp_get_module <<<"$module_exports" || fail "module loader entry point is missing"
+  vtool -show-build "$module" | grep -Eq 'platform +IOS$' || fail "module is not an iPhoneOS product"
+  vtool -show-build "$module" | grep -Eq 'minos +16\.0$' || fail "module minimum OS is not iOS 16.0"
+fi
 vtool -show-build "$executable" | grep -Eq 'platform +IOS$' || fail "app is not an iPhoneOS product"
-vtool -show-build "$module" | grep -Eq 'platform +IOS$' || fail "module is not an iPhoneOS product"
 vtool -show-build "$executable" | grep -Eq 'minos +16\.0$' || fail "app minimum OS is not iOS 16.0"
-vtool -show-build "$module" | grep -Eq 'minos +16\.0$' || fail "module minimum OS is not iOS 16.0"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")" = com.sunpad.SunPad ]] ||
   fail "unexpected bundle identifier"
-[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist")" = 0.1.0 ]] ||
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist")" = "$expected_version" ]] ||
   fail "unexpected app version"
-[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist")" = 13 ]] ||
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist")" = "$expected_build" ]] ||
   fail "unexpected app build number"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app/Info.plist")" = 16.0 ]] ||
   fail "Info.plist minimum OS is not iOS 16.0"
