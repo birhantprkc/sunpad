@@ -13,7 +13,8 @@ MG="$ROOT/ref/ModernGekko"
 TPL="$ROOT/ref/ModernGekko-Template"
 TOOLCHAIN="$ROOT/scripts/ios-device-toolchain.cmake"
 BUILD="$MG/build-ios-iphoneos-public"
-MODULE_BUILD="${SUNPAD_IOS_MODULE_BUILD:-/tmp/sunpad-module-ios-device}"
+# Inside the checkout, so two checkouts never share one CMake cache.
+MODULE_BUILD="${SUNPAD_IOS_MODULE_BUILD:-$ROOT/build/ios-module-device}"
 
 "$ROOT/scripts/bootstrap-dependencies.sh"
 
@@ -35,7 +36,8 @@ CMAKE_COMMON=(
   -DUSE_SYSTEM_LZ4=OFF -DUSE_SYSTEM_ZSTD=OFF
   -DHAVE_PIPE2=0
   "-DCMAKE_C_FLAGS=-ffile-prefix-map=$ROOT=."
-  "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=$ROOT=."
+  # PADFORGE_PUBLIC_APP: the published app carries no Nintendo keys (IOSC.cpp).
+  "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=$ROOT=. -DPADFORGE_PUBLIC_APP"
   "-DCMAKE_OBJC_FLAGS=-ffile-prefix-map=$ROOT=."
   "-DCMAKE_OBJCXX_FLAGS=-ffile-prefix-map=$ROOT=."
   # cubeb's wrapper defaults USE_SANITIZERS=ON, which needs the
@@ -48,6 +50,12 @@ cmake -S "$MG" -B "$BUILD" -G Ninja "${CMAKE_COMMON[@]}"
 
 echo "==> Building core libraries"
 ninja -C "$BUILD" libmoderngekko.a -j8
+
+# The published app needs only the core (no game code): scripts/build-ios-app.sh.
+if [[ "${SUNPAD_CORE_ONLY:-0}" = 1 ]]; then
+  echo "core libraries built; SUNPAD_CORE_ONLY=1 skips the game module"
+  exit 0
+fi
 
 echo "==> Building GMSE01 recompiled module for iOS device"
 ACTIVE_FILE="$TPL/build/modules-macos14/GMSE01/active-module.txt"
