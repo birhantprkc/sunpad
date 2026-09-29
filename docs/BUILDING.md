@@ -125,7 +125,7 @@ then copy it to the root of the app container's temporary directory:
 
 ```sh
 codesign --force --sign <development-identity> --timestamp=none \
-  --identifier gGMSE01_recomp /tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib
+  --identifier gGMSE01_recomp build/ios-module-device/gGMSE01_recomp.dylib
 xcrun devicectl device copy to --device <device-udid> \
   --domain-type appDataContainer --domain-identifier com.sunpad.SunPad \
   --source /tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib \

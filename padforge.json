@@ -53,7 +53,7 @@
           "command": [
             "{repo}/scripts/package-ios.sh",
             "{app}",
-            "/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib",
+            "{repo}/build/ios-module-device/gGMSE01_recomp.dylib",
             "{output}"
           ]
         }
@@ -107,7 +107,7 @@
       }
     ]
   },
-  "notes": "The app loads the translated game from a separate module (gGMSE01_recomp.dylib); package-ios.sh places it with the app. The /tmp module path is the one ios-build-core-device.sh writes today.",
+  "notes": "The app loads the translated game from a separate module (gGMSE01_recomp.dylib); package-ios.sh places it with the app. ios-build-core-device.sh builds the module in build/ios-module-device inside the checkout.",
   "publication": {
     "public_binaries": false,
     "reason": "The release publishes the app without game code; PadForge adds the module translated from the player's own disc, which stays personal."

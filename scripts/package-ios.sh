@@ -5,7 +5,7 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 # APP: a built SunPad.app, or the published SunPad IPA (the app without game code).
 # MODULE: the player's gGMSE01_recomp.dylib, or "none" for the published app itself.
 APP="${1:-/tmp/SunPadReleaseData/Build/Products/Release-iphoneos/SunPad.app}"
-MODULE="${2:-/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib}"
+MODULE="${2:-$ROOT/build/ios-module-device/gGMSE01_recomp.dylib}"
 OUTPUT="${3:-$ROOT/artifacts/SunPad-v$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/version.json")-ios-personal-unsigned.ipa}"
 
 [[ "$APP" = /* ]] || APP="$ROOT/$APP"

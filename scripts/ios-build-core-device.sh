@@ -13,7 +13,8 @@ MG="$ROOT/ref/ModernGekko"
 TPL="$ROOT/ref/ModernGekko-Template"
 TOOLCHAIN="$ROOT/scripts/ios-device-toolchain.cmake"
 BUILD="$MG/build-ios-iphoneos-public"
-MODULE_BUILD="${SUNPAD_IOS_MODULE_BUILD:-/tmp/sunpad-module-ios-device}"
+# Inside the checkout, so two checkouts never share one CMake cache.
+MODULE_BUILD="${SUNPAD_IOS_MODULE_BUILD:-$ROOT/build/ios-module-device}"
 
 "$ROOT/scripts/bootstrap-dependencies.sh"
 

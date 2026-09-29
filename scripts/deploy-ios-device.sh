@@ -3,7 +3,7 @@ set -euo pipefail
 
 DEVICE="${1:-}"
 APP="${2:-/tmp/SunPadDeviceData/Build/Products/Debug-iphoneos/SunPad.app}"
-MODULE="${3:-/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib}"
+MODULE="${3:-$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)/build/ios-module-device/gGMSE01_recomp.dylib}"
 BUNDLE_ID="com.sunpad.SunPad"
 
 if [[ -z "$DEVICE" ]]; then
