@@ -35,7 +35,8 @@ CMAKE_COMMON=(
   -DUSE_SYSTEM_LZ4=OFF -DUSE_SYSTEM_ZSTD=OFF
   -DHAVE_PIPE2=0
   "-DCMAKE_C_FLAGS=-ffile-prefix-map=$ROOT=."
-  "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=$ROOT=."
+  # PADFORGE_PUBLIC_APP: the published app carries no Nintendo keys (IOSC.cpp).
+  "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=$ROOT=. -DPADFORGE_PUBLIC_APP"
   "-DCMAKE_OBJC_FLAGS=-ffile-prefix-map=$ROOT=."
   "-DCMAKE_OBJCXX_FLAGS=-ffile-prefix-map=$ROOT=."
   # cubeb's wrapper defaults USE_SANITIZERS=ON, which needs the

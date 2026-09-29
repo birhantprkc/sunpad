@@ -23,7 +23,7 @@ for line in paths.splitlines():
     records.append({'path':path,'revision':commit.lstrip('+'),'url':url})
     for name in subprocess.check_output(['git','-C',str(checkout),'ls-files'],text=True).splitlines():
         p=pathlib.Path(name)
-        if p.name.lower().startswith(('license','copying','notice','copyright')) and (checkout/p).is_file() and not (checkout/p).is_symlink():
+        if p.name.lower().startswith(('license','copying','notice','copyright')) and p.suffix.lower() not in {'.zip','.gz','.xz','.bz2','.7z'} and (checkout/p).is_file() and not (checkout/p).is_symlink():
             dest=out/'licenses'/path/p;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(checkout/p,dest)
 (out/'source-references.json').write_text(json.dumps(records,indent=2)+'\n')
 (out/'README.txt').write_text('Source references describe the packaging checkout. They do not prove that an externally supplied app or game module was compiled from it. Retain exact build inputs and release provenance separately.\n')
