@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "id": "sunpad",
+  "name": "SunPad",
+  "game": "Super Mario Sunshine (GameCube, GMSE01 rev 0)",
+  "kind": "disc-translation",
+  "status": "draft-untested",
+  "inputs": [
+    {
+      "type": "gamecube-disc",
+      "formats": [
+        "iso"
+      ],
+      "when": "build",
+      "description": "Your own GMSE01 USA revision 0 disc image; prepare-game.sh checks its SHA-256 and extracts it privately."
+    }
+  ],
+  "targets": {
+    "ios": {
+      "hosts": {
+        "macos-arm64": "experimental"
+      },
+      "output": "ipa",
+      "check": "ipa",
+      "steps": [
+        {
+          "stage": "dependencies",
+          "command": [
+            "{repo}/scripts/bootstrap-dependencies.sh"
+          ]
+        },
+        {
+          "stage": "prepare",
+          "command": [
+            "{repo}/scripts/prepare-game.sh",
+            "{disc}"
+          ]
+        },
+        {
+          "stage": "translate",
+          "command": [
+            "{repo}/scripts/ios-build-core-device.sh"
+          ]
+        },
+        {
+          "stage": "compile",
+          "command": [
+            "xcodebuild",
+            "-project",
+            "{repo}/SunPad.xcodeproj",
+            "-scheme",
+            "SunPad",
+            "-configuration",
+            "Release",
+            "-destination",
+            "generic/platform=iOS",
+            "-derivedDataPath",
+            "{work}/xcode",
+            "CODE_SIGNING_ALLOWED=NO",
+            "build"
+          ]
+        },
+        {
+          "stage": "package",
+          "command": [
+            "{repo}/scripts/package-ios.sh",
+            "{work}/xcode/Build/Products/Release-iphoneos/SunPad.app",
+            "/tmp/sunpad-module-ios-device/gGMSE01_recomp.dylib",
+            "{output}"
+          ]
+        }
+      ]
+    },
+    "macos": {
+      "hosts": {
+        "macos-arm64": "planned"
+      }
+    }
+  },
+  "requirements": {
+    "disk_gb": 30,
+    "tools": [
+      {
+        "name": "git",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "cmake",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "ninja",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "python3",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "rg",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "xcodebuild",
+        "version_args": [
+          "-version"
+        ],
+        "note": "Install Xcode and its iOS platform"
+      }
+    ]
+  },
+  "notes": "The app loads the translated game from a separate module (gGMSE01_recomp.dylib); package-ios.sh places it with the app. The /tmp module path is the one ios-build-core-device.sh writes today.",
+  "publication": {
+    "public_binaries": false,
+    "reason": "Personal builds contain game code translated from the player's disc; public releases are source only."
+  }
+}
