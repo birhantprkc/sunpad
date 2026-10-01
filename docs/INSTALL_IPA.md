@@ -1,24 +1,20 @@
-# Install the developer-preview IPA
+# Install your personal SunPad IPA
 
 > [!IMPORTANT]
-> **Downloads retired.** Prebuilt builds are no longer published, and release
-> links on this page no longer work. A build-it-yourself version is in progress.
+> **The public app is an empty shell, not a ready-to-play IPA.** Follow the
+> README's **Get SunPad** route on an Apple silicon Mac with Xcode. PadMint
+> translates your own GMSE01 USA revision 0 disc image and adds its module to
+> the published app. Keep the resulting personal IPA local; never upload it.
 
-SunPad 0.1.0 Preview 13 is an unsigned arm64 IPA for iPhone and iPad. It must
-be re-signed with your own Apple identity before installation.
+Use the complete unsigned arm64 IPA saved by PadMint in Downloads, on an iPhone
+or iPad running iOS/iPadOS 16 or newer. It must be re-signed with your own Apple
+identity before installation. The public shell alone does not contain the
+required `gGMSE01_recomp.dylib` game module.
 
-Preview 13 rebuilds the app and GMSE01 module from the maintained, pinned
-forks and includes complete source notices. Existing Sunshine fixes and the
-supported Original 30 FPS mode remain in place. See the
-[release record](PREVIEW-13.md) for build provenance and testing limits.
-
-1. Download
-   `SunPad-0.1.0-preview.13-unsigned.ipa` (retired)
-   from the Preview 13 release (retired).
-2. Verify the SHA-256 shown in the release notes and GitHub asset digest.
-3. Re-sign the IPA with a sideloading workflow you trust, making sure the
+1. Use your personal IPA produced by PadMint, not the public shell or an old preview.
+2. Re-sign the IPA with a sideloading workflow you trust, making sure the
    nested `gGMSE01_recomp.dylib` is signed along with the app.
-4. Install and open it. On first launch, choose **Choose ISO or GCM** and select
+3. Install and open it. On first launch, choose **Choose ISO or GCM** and select
    your own legally obtained `GMSE01` USA revision 0 ISO/GCM image. To replace
    it later, use **••• → Game Data & Saves → Import or Reimport Game Data**.
 
@@ -28,10 +24,24 @@ in **Files → On My iPhone/iPad → SunPad**, then choose **••• → Game 
 imports a validated private copy, so remove the dropped file yourself only
 after the game has launched successfully if you want to reclaim that space.
 
-The IPA contains the open-source SunPad/ModernGekko runtime and its required
-GMSE01 ahead-of-time recompiled executable module. It contains no disc image,
+The complete personal IPA contains the open-source SunPad/ModernGekko runtime
+and its required GMSE01 ahead-of-time recompiled executable module. It contains no disc image,
 extracted game assets, save, settings, certificate, or provisioning profile.
 It is not an App Store, TestFlight, or computer-free installation release.
+
+When updating, preserve the same bundle identifier/signing setup and install
+in place. Back up your saves first; uninstalling can remove private game data
+and saves.
+
+## Historical Preview 13
+
+`SunPad-0.1.0-preview.13-unsigned.ipa` is a retired download, not the current
+PadMint route. For a retained historical copy, verify the SHA-256 recorded in
+the release notes and GitHub asset digest. Preview 13 rebuilt the app and
+GMSE01 module from the maintained, pinned forks and included complete source
+notices. Existing Sunshine fixes and the supported Original 30 FPS mode
+remained in place. See the [release record](PREVIEW-13.md) for build provenance
+and testing limits; it does not establish acceptance of a newly generated IPA.
 
 ## LiveContainer status
 
