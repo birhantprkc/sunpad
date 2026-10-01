@@ -8,6 +8,12 @@
 # the device from the user's locally generated DolRecomp output.
 set -euo pipefail
 
+BUILD_JOBS="${CMAKE_BUILD_PARALLEL_LEVEL:-8}"
+if [[ ! "$BUILD_JOBS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Build job limit must be a positive whole number without leading zeros: $BUILD_JOBS" >&2
+  exit 2
+fi
+
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 MG="$ROOT/ref/ModernGekko"
 TPL="$ROOT/ref/ModernGekko-Template"
@@ -49,7 +55,7 @@ echo "==> Configuring ModernGekko core for iOS device"
 cmake -S "$MG" -B "$BUILD" -G Ninja "${CMAKE_COMMON[@]}"
 
 echo "==> Building core libraries"
-ninja -C "$BUILD" libmoderngekko.a -j8
+ninja -C "$BUILD" libmoderngekko.a -j"$BUILD_JOBS"
 
 # The published app needs only the core (no game code): scripts/build-ios-app.sh.
 if [[ "${SUNPAD_CORE_ONLY:-0}" = 1 ]]; then
@@ -89,7 +95,7 @@ cmake -S "$MG/vendor/dolphin/module-template" -B "$MODULE_BUILD" -G Ninja \
   -DGENERATED_DIR="$GEN" \
   -DGXRUNTIME_DIR="$MG/vendor/dolphin/GXRuntime" \
   -DCHASSIS_ABI_DIR="$MG/vendor/dolphin/Source/Core/Core/PowerPC/StaticRecomp"
-ninja -C "$MODULE_BUILD" -j8
+ninja -C "$MODULE_BUILD" -j"$BUILD_JOBS"
 
 echo "==> Provisioning app"
 SUNPAD_DEVICE_MODULE_PATH="$MODULE_BUILD/gGMSE01_recomp.dylib" "$ROOT/scripts/ios-provision-device.sh"
