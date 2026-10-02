@@ -7,6 +7,7 @@ cd "$ROOT"
 git diff --check
 python3 scripts/dependency-lock.py
 python3 tests/test_dependency_lock.py
+python3 tests/test_build_jobs.py
 python3 tests/test_package_output.py
 ./tests/test-extraction-progress.sh
 ./tests/test-ipa-module.sh

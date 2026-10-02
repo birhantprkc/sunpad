@@ -3,6 +3,12 @@
 # extracts it locally, and generates the host module used by Apple builds.
 set -euo pipefail
 
+BUILD_JOBS="${SUNPAD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-8}}"
+if [[ ! "$BUILD_JOBS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Build job limit must be a positive whole number without leading zeros: $BUILD_JOBS" >&2
+  exit 2
+fi
+
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ISO=${1:-}
 EXPECTED_SHA256=67cec1634e641227a4cd51e6a0b277730cb9a1adaa867530c9e66de45373e51d
@@ -36,7 +42,7 @@ cmake -S "$MG" -B "$DESKTOP_BUILD" -G Ninja \
   -DUSE_MGBA=OFF -DUSE_RETRO_ACHIEVEMENTS=OFF -DENABLE_AUTOUPDATE=OFF \
   -DENABLE_ANALYTICS=OFF -DUSE_UPNP=OFF
 cmake --build "$DESKTOP_BUILD" --target moderngekko-port moderngekko-run \
-  -j"${SUNPAD_JOBS:-8}"
+  -j"$BUILD_JOBS"
 
 if [[ -e "$GAME" ]]; then
   if [[ ! -f "$MARKER" || "$(<"$MARKER")" != "$EXPECTED_SHA256" ]]; then

@@ -1,10 +1,16 @@
 # Install the experimental SunPad Apple TV build
 
-SunPad 0.1.0 Preview 13 includes an unsigned ARM64 tvOS IPA for hardware
-bring-up. It is experimental Apple TV functionality, not accepted support.
+There is no current public tvOS IPA download or PadMint tvOS recipe. For private
+source development, use the build and packaging route in `TVOS.md`, then the
+staging instructions below. It is experimental Apple TV functionality, not
+accepted support.
 
-1. Download `SunPad-0.1.0-preview.13-tvos-unsigned.ipa` and verify the SHA-256
-   from the Preview 13 release.
+SunPad 0.1.0 Preview 13's unsigned ARM64 tvOS IPA was a hardware bring-up
+artifact. Its download is retired. The historical filename
+`SunPad-0.1.0-preview.13-tvos-unsigned.ipa` and SHA-256 in the Preview 13 release
+record apply only to that retained artifact, not a new private build.
+
+1. Build, package and audit your private tvOS IPA as described in `TVOS.md`.
 2. Re-sign the app and its nested `gGMSE01_recomp.dylib` with your own Apple
    development identity and bundle identifier, then install it on a paired
    Apple TV using Xcode or a compatible tvOS signing workflow.
